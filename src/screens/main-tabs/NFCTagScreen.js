@@ -1,35 +1,50 @@
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { MainWrapper } from "../../components/common/MainWrapper";
+import React from 'react';
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import {MainWrapper} from '../../components/common/MainWrapper';
 
-import Svg, { G, Path, Defs, ClipPath, Rect } from "react-native-svg";
+import Svg, {G, Path, Defs, ClipPath, Rect} from 'react-native-svg';
+import NfcManager, {NfcTech} from 'react-native-nfc-manager';
+
+NfcManager.start();
 
 const NFCTagScreen = () => {
+  async function readNdef() {
+    try {
+      // register for the NFC tag with NDEF in it
+      await NfcManager.requestTechnology(NfcTech.Ndef);
+      // the resolved tag object will contain `ndefMessage` property
+      const tag = await NfcManager.getTag();
+      console.warn('Tag found', tag.id);
+    } catch (ex) {
+      console.warn('Oops!', ex);
+    } finally {
+      // stop the nfc scanning
+      NfcManager.cancelTechnologyRequest();
+    }
+  }
+
   return (
-    <View
-      style={{ flex: 1, justifyContent: "center", backgroundColor: "black" }}
-    >
-      <View style={{ alignItems: "center" }}>
+    <View style={{flex: 1, justifyContent: 'center', backgroundColor: 'black'}}>
+      <View style={{alignItems: 'center'}}>
         <NFCVectorImage />
         <Text
           style={{
-            fontWeight: "700",
+            fontWeight: '700',
             fontSize: 50,
             marginTop: -30,
-            color: "white",
-          }}
-        >
+            color: 'white',
+          }}>
           NFC
         </Text>
-        <Text style={{ fontSize: 24, marginTop: 40, color: "white" }}>
-          현재 정보를 <Text style={{ fontWeight: "700" }}>Buzzy</Text>에
+        <Text style={{fontSize: 24, marginTop: 40, color: 'white'}}>
+          현재 정보를 <Text style={{fontWeight: '700'}}>Buzzy</Text>에
         </Text>
-        <Text style={{ fontSize: 24, color: "white" }}>저장하시겠습니까?</Text>
+        <Text style={{fontSize: 24, color: 'white'}}>저장하시겠습니까?</Text>
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={() => console.log("save button is pressed")}
-          activeOpacity={0.6}
-        >
-          <Text style={{ color: "#fff", fontSize: 20 }}>정보 저장하기</Text>
+          onPress={readNdef}
+          activeOpacity={0.6}>
+          <Text style={{color: '#fff', fontSize: 20}}>정보 저장하기</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -38,14 +53,14 @@ const NFCTagScreen = () => {
 
 const styles = StyleSheet.create({
   saveButton: {
-    backgroundColor: "#000",
-    borderColor: "white",
+    backgroundColor: '#000',
+    borderColor: 'white',
     borderWidth: 2,
     width: 350,
     height: 50,
     borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 50,
   },
 });
@@ -57,8 +72,7 @@ const NFCVectorImage = () => {
       height="130"
       viewBox="0 0 80 80"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+      xmlns="http://www.w3.org/2000/svg">
       <G clip-path="url(#clip0_181_1557)">
         <Path
           d="M63.9458 44.8702C62.8456 44.8702 61.7616 44.4495 60.9202 43.6082C49.368 32.0721 30.5997 32.0721 19.0474 43.6082C17.3809 45.2747 14.6628 45.2747 12.9963 43.6082C11.3298 41.9417 11.3298 39.2235 12.9963 37.557C27.8815 22.6718 52.0862 22.6718 66.9714 37.557C68.6379 39.2235 68.6379 41.9417 66.9714 43.6082C66.1301 44.4495 65.0298 44.8702 63.9458 44.8702Z"

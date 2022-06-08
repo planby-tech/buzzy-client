@@ -9,20 +9,23 @@ import {
   TextInput,
   Switch,
   ScrollView,
+  Platform,
 } from 'react-native';
-import {MainWrapper} from '../../../components/common/MainWrapper';
 import {Calendar, LocaleConfig} from 'react-native-calendars';
-import Button from '../../../components/common/SubmitButton';
+import {useIsFocused} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import {useSelector} from 'react-redux';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import {MainWrapper} from '../../../components/common/MainWrapper';
+import Button from '../../../components/common/SubmitButton';
+import {Body3} from '../../../components/design-system/FontSystem';
 import GardenerImage from '../../../assets/images/Gardener';
 import LeafIcon from '../../../assets/images/Leaf';
 import {GREEN_COLOR} from '../../../common/colors';
-import {useIsFocused} from '@react-navigation/native';
 
-const MeetingListScreen = () => {
+const MeetingListScreen = ({navigation}) => {
   const {groupArray} = useSelector(state => state.user);
 
   const dateToStr = date => {
@@ -32,9 +35,11 @@ const MeetingListScreen = () => {
     return {year: year, month: month, day: day};
   };
 
-  const [today, setToday] = useState(dateToStr(new Date()));
-  const [selectedDay, setSelectedDay] = useState(today);
-  const [selectedDate, setSelectedDate] = useState({});
+  const [sourceDate, setSourceDate] = useState(new Date());
+
+  const [today, setToday] = useState(dateToStr(sourceDate));
+  const [selectedDay, setSelectedDay] = useState(today); // to initialize the meeting start and end day as the selected day on the calendar.
+  const [selectedDate, setSelectedDate] = useState({}); // to express the selected day on the calendar with green circle background.
   const [markedDates, setMarkedDates] = useState({});
   const [selectedGroup, setSelectedGroup] = useState({id: 0});
   const [modalVisible, setModalVisible] = useState(false);
@@ -42,7 +47,13 @@ const MeetingListScreen = () => {
   const [groupSubmitted, setGroupSubmitted] = useState(false);
   const [durationAllDayLong, setDurationAllDayLong] = useState(false);
 
+  //States for 'Create Meeting'
+  const isPlatformIOS = Platform.OS === 'ios';
+  const [startPickerVisible, setStartPickerVisible] = useState(isPlatformIOS); // 'true' for ios, 'false' for android
+  const [endPickerVisible, setEndPickerVisible] = useState(isPlatformIOS);
   const [meetingTitle, setMeetingTitle] = useState('');
+  const [meetingStartDateTime, setMeetingStartDateTime] = useState(sourceDate);
+  const [meetingEndDateTime, setMeetingEndDateTime] = useState(sourceDate);
 
   LocaleConfig.locales['kr'] = {
     monthNames: [
@@ -89,8 +100,7 @@ const MeetingListScreen = () => {
 
   const isFocused = useIsFocused();
   useEffect(() => {
-    setToday(dateToStr(new Date()));
-    console.log(today);
+    setSourceDate(new Date());
   }, [isFocused]);
 
   const handleModalClose = () => {
@@ -100,6 +110,9 @@ const MeetingListScreen = () => {
     setActivityList(initialActivityList);
     setMeetingTitle('');
     setModalVisible(false);
+    setDurationAllDayLong(false);
+    setMeetingStartDateTime(sourceDate);
+    setMeetingEndDateTime(sourceDate);
   };
 
   const handleSelectDay = day => {
@@ -116,6 +129,34 @@ const MeetingListScreen = () => {
 
   const handleCreateMeeting = () => {
     console.log('pressed');
+  };
+
+  const handleNavigateToNFC = () => {
+    navigation.navigate('NFCTag');
+  };
+
+  const handleStartPicker = (event, selectedStartDate) => {
+    const currentDate = selectedStartDate || meetingStartDateTime;
+    if (Platform.OS === 'android') {
+      setStartPickerVisible(false);
+    }
+    if (event.type === 'neutralButtonPressed') {
+      setMeetingStartDateTime(new Date(0));
+    } else {
+      setMeetingStartDateTime(currentDate);
+    }
+  };
+
+  const handleEndPicker = (event, selectedEndDate) => {
+    const currentDate = selectedEndDate || meetingEndDateTime;
+    if (Platform.OS === 'android') {
+      setEndPickerVisible(false);
+    }
+    if (event.type === 'neutralButtonPressed') {
+      setMeetingEndDateTime(new Date(0));
+    } else {
+      setMeetingEndDateTime(currentDate);
+    }
   };
 
   const groupListLayout = ({item}) => {
@@ -268,6 +309,7 @@ const MeetingListScreen = () => {
         onDayPress={day => handleSelectDay(day)}
         markedDates={{...selectedDate}}
       />
+      <Button title="NFC 기록하기" onPress={handleNavigateToNFC} />
       <Modal
         isVisible={modalVisible}
         onModalHide={handleModalClose}
@@ -340,22 +382,40 @@ const MeetingListScreen = () => {
                     }}>
                     <Text style={styles.durationText}>하루 종일</Text>
                     <Switch
-                      style={{height: 20}}
                       onValueChange={handleAllDayLong}
                       value={durationAllDayLong}
                     />
                   </View>
                   <TouchableOpacity
                     style={styles.durationCell}
-                    disabled={durationAllDayLong}>
-                    <Text
-                      style={
-                        durationAllDayLong
-                          ? {...styles.durationText, color: 'gray'}
-                          : styles.durationText
-                      }>
-                      {`${selectedDay.year}년 ${selectedDay.month}월 ${selectedDay.day}일`}
-                    </Text>
+                    disabled={durationAllDayLong}
+                    onPress={() => setStartPickerVisible(true)}>
+                    {isPlatformIOS ? (
+                      <Body3>시작하는 시간</Body3>
+                    ) : (
+                      <Text
+                        style={
+                          durationAllDayLong
+                            ? {...styles.durationText, color: 'gray'}
+                            : styles.durationText
+                        }>
+                        {`${meetingStartDateTime.getFullYear()}년 ${
+                          meetingStartDateTime.getMonth() + 1
+                        }월 ${meetingStartDateTime.getDate()}일`}
+                      </Text>
+                    )}
+                    {startPickerVisible && (
+                      <DateTimePicker
+                        value={meetingStartDateTime}
+                        minimumDate={sourceDate}
+                        onChange={handleStartPicker}
+                        style={{width: 250}}
+                        themeVariant="dark"
+                        minuteInterval={5}
+                        locale="ko-KR"
+                        mode={isPlatformIOS ? 'datetime' : 'date'}
+                      />
+                    )}
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={{
@@ -364,15 +424,34 @@ const MeetingListScreen = () => {
                       borderBottomRightRadius: 12,
                       borderBottomWidth: 0,
                     }}
-                    disabled={durationAllDayLong}>
-                    <Text
-                      style={
-                        durationAllDayLong
-                          ? {...styles.durationText, color: 'gray'}
-                          : styles.durationText
-                      }>
-                      {`${selectedDay.year}년 ${selectedDay.month}월 ${selectedDay.day}일`}
-                    </Text>
+                    disabled={durationAllDayLong}
+                    onPress={() => setEndPickerVisible(true)}>
+                    {isPlatformIOS ? (
+                      <Body3>끝나는 시간</Body3>
+                    ) : (
+                      <Text
+                        style={
+                          durationAllDayLong
+                            ? {...styles.durationText, color: 'gray'}
+                            : styles.durationText
+                        }>
+                        {`${meetingEndDateTime.getFullYear()}년 ${
+                          meetingEndDateTime.getMonth() + 1
+                        }월 ${meetingEndDateTime.getDate()}일`}
+                      </Text>
+                    )}
+                    {endPickerVisible && (
+                      <DateTimePicker
+                        value={meetingEndDateTime}
+                        minimumDate={meetingStartDateTime}
+                        onChange={handleEndPicker}
+                        style={{width: 250}}
+                        themeVariant="dark"
+                        minuteInterval={5}
+                        locale="ko-KR"
+                        mode={isPlatformIOS ? 'datetime' : 'date'}
+                      />
+                    )}
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.durationTitle}>장소</Text>
@@ -431,6 +510,8 @@ const styles = StyleSheet.create({
   },
   durationCell: {
     backgroundColor: '#3a3a3a',
+    height: 50,
+    alignItems: 'center',
     padding: 12,
     borderBottomColor: `rgba(255, 255, 255, 0.42)`,
     borderBottomWidth: 1,

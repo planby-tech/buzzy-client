@@ -12,7 +12,7 @@ import {
 import {GREEN_COLOR} from '../../../common/colors';
 import Button from '../../../components/common/SubmitButton';
 
-const CreateGroupScreen = ({navigation}) => {
+const CreateGroupScreen = ({navigation, userId}) => {
   const [loading, setLoading] = useState(false);
   const {isLoggedIn} = useSelector(state => state.auth);
   const {message} = useSelector(state => state.message);
@@ -32,7 +32,7 @@ const CreateGroupScreen = ({navigation}) => {
   const handleCreateGroup = (formValue, {resetForm}) => {
     const {name, description} = formValue;
     setLoading(true);
-    dispatch(createGroup({name, description}))
+    dispatch(createGroup({userId, name, description}))
       .unwrap()
       .then(() => {
         resetForm({values: initialValues});

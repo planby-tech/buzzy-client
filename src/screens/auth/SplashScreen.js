@@ -11,8 +11,13 @@ const SplashScreen = ({navigation}) => {
     dispatch(loadUserData())
       .unwrap()
       .then(res => {
+        console.log('res in Splash: ' + JSON.stringify(res));
         setTimeout(() => {
-          if (res.user.accessToken) {
+          if (res.user !== null) {
+            console.log(res.user.accessToken);
+            console.log(
+              'res.user.user.id in SplashScreen: ' + res.user.user.id,
+            );
             dispatch(findByUser(res.user.user.id))
               .unwrap()
               .then(data => {
@@ -26,16 +31,15 @@ const SplashScreen = ({navigation}) => {
                       },
                     ],
                   });
+                } else {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{name: 'Login'}],
+                  });
                 }
-                // else {
-                //   navigation.reset({
-                //     index: 0,
-                //     routes: [{ name: "Login" }],
-                //   });
-                // }
               })
               .catch(err => {
-                console.log('here!');
+                console.log('here!' + err);
                 navigation.reset({
                   index: 0,
                   routes: [{name: 'Login'}],
@@ -51,7 +55,7 @@ const SplashScreen = ({navigation}) => {
         }, 300); //setTimeout 빼도 됨.
       })
       .catch(err => {
-        console.log('SplashScreen gotcha!' + err);
+        console.log('SplashScreen gotcha!' + JSON.stringify(err.message));
         navigation.reset({
           index: 0,
           routes: [{name: 'Login'}],

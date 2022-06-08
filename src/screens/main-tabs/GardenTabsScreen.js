@@ -6,6 +6,7 @@ import GardenTabs from './GardenTabs';
 const GardenTabsScreen = () => {
   return (
     <MainWrapper>
+      <StatusBar barStyle="light-content" />
       <GardenTabs />
     </MainWrapper>
   );

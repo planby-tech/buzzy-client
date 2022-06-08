@@ -1,12 +1,16 @@
-import { createSlice, createAsyncThunk, createAction } from "@reduxjs/toolkit";
-import { setMessage } from "./message";
-import groupService from "../../services/group.service";
+import {createSlice, createAsyncThunk, createAction} from '@reduxjs/toolkit';
+import {setMessage} from './message';
+import groupService from '../../services/group.service';
 
 export const createGroup = createAsyncThunk(
-  "group/create",
-  async ({ name, description }, thunkAPI) => {
+  'group/create',
+  async ({userId, name, description}, thunkAPI) => {
     try {
-      const response = await groupService.createGroup(name, description);
+      const response = await groupService.createGroup(
+        userId,
+        name,
+        description,
+      );
       thunkAPI.dispatch(setMessage(response.data.message));
       return response.data;
     } catch (error) {
@@ -18,11 +22,11 @@ export const createGroup = createAsyncThunk(
       thunkAPI.dispatch(setMessage(message));
       return thunkAPI.rejectWithValue();
     }
-  }
+  },
 );
 export const joinGroup = createAsyncThunk(
-  "group/join",
-  async ({ userId, groupCode }, thunkAPI) => {
+  'group/join',
+  async ({userId, groupCode}, thunkAPI) => {
     try {
       const response = await groupService.joinGroup(userId, groupCode);
       thunkAPI.dispatch(setMessage(response.data.message));
@@ -36,11 +40,11 @@ export const joinGroup = createAsyncThunk(
       thunkAPI.dispatch(setMessage(message));
       return thunkAPI.rejectWithValue();
     }
-  }
+  },
 );
 export const findByGroup = createAsyncThunk(
-  "group/findUser",
-  async ({ groupId }, thunkAPI) => {
+  'group/findUser',
+  async ({groupId}, thunkAPI) => {
     try {
       const response = await groupService.findByGroup(groupCode);
       thunkAPI.dispatch(setMessage(response.data.message));
@@ -54,12 +58,12 @@ export const findByGroup = createAsyncThunk(
       thunkAPI.dispatch(setMessage(message));
       return thunkAPI.rejectWithValue();
     }
-  }
+  },
 );
 
-const initialState = { isLoggedIn: false, user: null, groupArray: null };
+const initialState = {isLoggedIn: false, user: null, groupArray: null};
 const groupSlice = createSlice({
-  name: "group",
+  name: 'group',
   initialState,
   extraReducers: {
     [createGroup.fulfilled]: (state, action) => {
@@ -68,5 +72,5 @@ const groupSlice = createSlice({
     },
   },
 });
-const { reducer } = groupSlice;
+const {reducer} = groupSlice;
 export default reducer;

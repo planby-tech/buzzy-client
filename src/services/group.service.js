@@ -1,77 +1,79 @@
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../common/constant";
-import authHeader from "./auth-header";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from '../common/constant';
+import authHeader from './auth-header';
 
-const GROUP_URL = API_URL + "/groups";
-
-const createGroup = async (name, description) => {
+const createGroup = async (userId, name, description) => {
+  console.log(userId, name, description);
   const header = await authHeader();
   return axios
     .post(
-      GROUP_URL,
+      API_URL + `/users/${userId}/groups`,
       {
         name,
         description,
       },
-      { headers: header }
+      {headers: header},
     )
-    .then((res) => {
+    .then(res => {
       console.log(res.data.group);
       return res;
     })
-    .catch((error) => {
+    .catch(error => {
       console.log(error);
     });
 };
 const joinGroup = async (userId, groupCode) => {
   const header = await authHeader();
+  console.log(header, userId, groupCode);
   return axios
-    .post(
-      API_URL + `/users/${userId}/groups`,
-      { groupCode },
-      { headers: header }
+    .patch(
+      `${API_URL}/users/${userId}/groups/${groupCode}`,
+      {},
+      {headers: header},
     )
-    .then((res) => {
+    .then(res => {
       console.log(res);
       return res;
     })
-    .catch((error) => {
+    .catch(error => {
       console.log(error);
     });
 };
-const findByGroup = async (groupId) => {
+const findByGroup = async (userId, groupId) => {
   const header = await authHeader();
   return axios
-    .get(GROUP_URL + `/groups/${groupId}/users`, { headers: header })
-    .then((res) => {
+    .get(API_URL + `/users/${userId}/groups/${groupId}/users`, {
+      headers: header,
+    })
+    .then(res => {
       return res;
     })
-    .catch((error) => {
-      console.log(error);
-    });
-};
-
-const updateGroup = async (groupId) => {
-  const header = await authHeader();
-  return axios
-    .put(GROUP_URL + `/groups/${groupId}`, { headers: header })
-    .then((res) => {
-      return res;
-    })
-    .catch((error) => {
+    .catch(error => {
       console.log(error);
     });
 };
 
-const deleteGroup = async (groupId) => {
+const updateGroup = async (userId, groupId) => {
   const header = await authHeader();
   return axios
-    .delete(GROUP_URL + `/groups/${groupId}`, { headers: header })
-    .then((res) => {
+    .put(API_URL + `/users/${userId}/groups/${groupId}`, {headers: header})
+    .then(res => {
       return res;
     })
-    .catch((error) => {
+    .catch(error => {
+      console.log(error);
+    });
+};
+
+const deleteGroup = async (userId, groupId) => {
+  const header = await authHeader();
+  return axios
+    .delete(API_URL + `/users/${userId}/groups/${groupId}`, {headers: header})
+    .then(res => {
+      return res;
+    })
+    .catch(error => {
       console.log(error);
     });
 };

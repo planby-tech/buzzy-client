@@ -1,31 +1,39 @@
-import { createSlice, createAsyncThunk, createAction } from "@reduxjs/toolkit";
-import { setMessage } from "./message";
-import userService from "../../services/user.service";
+import {createSlice, createAsyncThunk, createAction} from '@reduxjs/toolkit';
+import {setMessage} from './message';
+import userService from '../../services/user.service';
 
-export const findByUser = createAsyncThunk("users/findGroups", async (userId, thunkAPI) => {
-  try {
-    const data = await userService.findByUser(userId);
-    if (data) return {groupArray: data};
-    return null;
-  } catch (error) {
-    const message =
-      (error.response && error.response.message) ||
-      error.message ||
-      error.toString();
-    thunkAPI.dispatch(setMessage(message));
-    return thunkAPI.rejectWithValue();
-  }
-});
+export const findByUser = createAsyncThunk(
+  'users/findGroups',
+  async (userId, thunkAPI) => {
+    try {
+      console.log('userId in findByUser in user.js: ' + userId);
+      const data = await userService.findByUser(userId);
+      console.log('data in findByUser in user.js: ' + JSON.stringify(data));
+      if (data) return {groupArray: data};
+      return null;
+    } catch (error) {
+      const message =
+        (error.response && error.response.message) ||
+        error.message ||
+        error.toString();
+      thunkAPI.dispatch(setMessage(message));
+      return thunkAPI.rejectWithValue();
+    }
+  },
+);
 
-const initialState = { isLoggedIn: false, user: null, groupArray: null };
+const initialState = {groupArray: null};
 const userSlice = createSlice({
-  name: "user",
+  name: 'user',
   initialState,
   extraReducers: {
     [findByUser.fulfilled]: (state, action) => {
       state.groupArray = action.payload.groupArray;
-    }
+    },
+    [findByUser.rejected]: (state, action) => {
+      state.groupArray = null;
+    },
   },
 });
-const { reducer } = userSlice;
+const {reducer} = userSlice;
 export default reducer;

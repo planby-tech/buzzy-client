@@ -1,3 +1,4 @@
+import React from 'react';
 import {Formik} from 'formik';
 import {useState} from 'react';
 import {
@@ -11,8 +12,11 @@ import {GREEN_COLOR} from '../../../common/colors';
 import {MainWrapper} from '../../../components/common/MainWrapper';
 import CreateGroupScreen from './CreateGroupScreen';
 import JoinGroupScreen from './JoinGroupScreen';
+import {useSelector} from 'react-redux';
 
 const AddGroupScreen = ({navigation}) => {
+  const {user} = useSelector(state => state.auth);
+  const userId = user.user.id;
   const [type, setType] = useState('create');
   return (
     <MainWrapper>
@@ -52,8 +56,12 @@ const AddGroupScreen = ({navigation}) => {
           </Text>
         </TouchableOpacity>
       </View>
-      {type === 'create' && <CreateGroupScreen navigation={navigation} />}
-      {type === 'join' && <JoinGroupScreen navigation={navigation} />}
+      {type === 'create' && (
+        <CreateGroupScreen navigation={navigation} userId={userId} />
+      )}
+      {type === 'join' && (
+        <JoinGroupScreen navigation={navigation} userId={userId} />
+      )}
     </MainWrapper>
   );
 };
