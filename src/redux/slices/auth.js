@@ -1,4 +1,4 @@
-import {createSlice, createAsyncThunk, createAction} from '@reduxjs/toolkit';
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {setMessage} from './message';
 import authService from '../../services/auth.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';

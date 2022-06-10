@@ -14,7 +14,7 @@ import {
 import {Calendar, LocaleConfig} from 'react-native-calendars';
 import {useIsFocused} from '@react-navigation/native';
 import Modal from 'react-native-modal';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -25,7 +25,12 @@ import GardenerImage from '../../../assets/images/Gardener';
 import LeafIcon from '../../../assets/images/Leaf';
 import {GREEN_COLOR} from '../../../common/colors';
 
+import {createMeeting} from '../../../redux/slices/meeting';
+import {findByGroup} from '../../../redux/slices/group';
+
 const MeetingListScreen = ({navigation}) => {
+  const {user} = useSelector(state => state.auth);
+  const userId = user.user.id;
   const {groupArray} = useSelector(state => state.user);
 
   const dateToStr = date => {
@@ -49,11 +54,27 @@ const MeetingListScreen = ({navigation}) => {
 
   //States for 'Create Meeting'
   const isPlatformIOS = Platform.OS === 'ios';
-  const [startPickerVisible, setStartPickerVisible] = useState(isPlatformIOS); // 'true' for ios, 'false' for android
-  const [endPickerVisible, setEndPickerVisible] = useState(isPlatformIOS);
+  const [startDatePickerVisible, setStartDatePickerVisible] =
+    useState(isPlatformIOS); // 'true' for ios, 'false' for android
+  const [startTimePickerVisible, setStartTimePickerVisible] =
+    useState(isPlatformIOS);
+  const [endDatePickerVisible, setEndDatePickerVisible] =
+    useState(isPlatformIOS);
+  const [endTimePickerVisible, setEndTimePickerVisible] =
+    useState(isPlatformIOS);
   const [meetingTitle, setMeetingTitle] = useState('');
   const [meetingStartDateTime, setMeetingStartDateTime] = useState(sourceDate);
   const [meetingEndDateTime, setMeetingEndDateTime] = useState(sourceDate);
+  const [placeList, setPlaceList] = useState([]);
+  const [userList, setUserList] = useState([]);
+  // const [meetingObject, setMeetingObject] = useState({
+  //   name: '',
+  //   start: new Date(),
+  //   end: new Date(),
+  //   allDay: false,
+  //   places: [],
+  //   activities: [],
+  // });
 
   LocaleConfig.locales['kr'] = {
     monthNames: [
@@ -94,14 +115,49 @@ const MeetingListScreen = ({navigation}) => {
 
   const {width, height} = Dimensions.get('screen');
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    // setGroupSubmitted(false);
-  }, []);
+    const groupId = selectedGroup.id;
+    if (groupId !== 0) {
+      dispatch(findByGroup({userId: userId, groupId: groupId})).then(res => {
+        const loadedUserList = res.payload.map(val => val.id);
+        setUserList(loadedUserList);
+      });
+    }
+  }, [selectedGroup]);
 
   const isFocused = useIsFocused();
   useEffect(() => {
     setSourceDate(new Date());
   }, [isFocused]);
+
+  useEffect(() => {
+    if (durationAllDayLong) {
+      const meetingYear = meetingStartDateTime.getFullYear();
+      const meetingMonthIdx = meetingStartDateTime.getMonth();
+      const meetingDate = meetingStartDateTime.getDate();
+      setMeetingEndDateTime(
+        new Date(meetingYear, meetingMonthIdx, meetingDate, 23, 59),
+      );
+    }
+    if (!durationAllDayLong) setMeetingEndDateTime(meetingStartDateTime);
+  }, [meetingStartDateTime]);
+
+  useEffect(() => {
+    if (durationAllDayLong) {
+      const meetingYear = meetingStartDateTime.getFullYear();
+      const meetingMonthIdx = meetingStartDateTime.getMonth();
+      const meetingDate = meetingStartDateTime.getDate();
+
+      setMeetingStartDateTime(
+        new Date(meetingYear, meetingMonthIdx, meetingDate, 0, 0),
+      );
+      setMeetingEndDateTime(
+        new Date(meetingYear, meetingMonthIdx, meetingDate, 23, 59),
+      );
+    }
+  }, [durationAllDayLong]);
 
   const handleModalClose = () => {
     setGroupSubmitted(false);
@@ -127,10 +183,6 @@ const MeetingListScreen = ({navigation}) => {
     setDurationAllDayLong(prev => !prev);
   };
 
-  const handleCreateMeeting = () => {
-    console.log('pressed');
-  };
-
   const handleNavigateToNFC = () => {
     navigation.navigate('NFCTag');
   };
@@ -138,7 +190,8 @@ const MeetingListScreen = ({navigation}) => {
   const handleStartPicker = (event, selectedStartDate) => {
     const currentDate = selectedStartDate || meetingStartDateTime;
     if (Platform.OS === 'android') {
-      setStartPickerVisible(false);
+      setStartDatePickerVisible(false);
+      setStartTimePickerVisible(false);
     }
     if (event.type === 'neutralButtonPressed') {
       setMeetingStartDateTime(new Date(0));
@@ -150,13 +203,53 @@ const MeetingListScreen = ({navigation}) => {
   const handleEndPicker = (event, selectedEndDate) => {
     const currentDate = selectedEndDate || meetingEndDateTime;
     if (Platform.OS === 'android') {
-      setEndPickerVisible(false);
+      setEndDatePickerVisible(false);
+      setEndTimePickerVisible(false);
     }
     if (event.type === 'neutralButtonPressed') {
       setMeetingEndDateTime(new Date(0));
     } else {
       setMeetingEndDateTime(currentDate);
     }
+  };
+
+  const handleAddPlace = () => {
+    setPlaceList([
+      {
+        name: '이화여자대학교',
+        latitude: 37.562544705628845,
+        longitude: 126.94765009467245,
+      },
+      {
+        name: '역삼역 1번 출구',
+        latitude: 37.500479553579,
+        longitude: 127.0372632678719,
+      },
+    ]);
+  };
+
+  const handleCreateMeeting = () => {
+    const groupId = selectedGroup.id;
+    const activityIdList = activityList
+      .filter(val => val.selected)
+      .map(val => val.id);
+    const meetingObject = {
+      groupId: groupId,
+      title: meetingTitle,
+      start: meetingStartDateTime,
+      end: meetingEndDateTime,
+      allDay: durationAllDayLong,
+      places: placeList,
+      activities: activityIdList,
+      users: userList,
+    };
+    console.log(meetingObject);
+    dispatch(createMeeting(meetingObject))
+      .unwrap()
+      .then(res => {
+        console.log(res);
+        handleModalClose();
+      });
   };
 
   const groupListLayout = ({item}) => {
@@ -329,6 +422,15 @@ const MeetingListScreen = ({navigation}) => {
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           }}>
+          <View
+            style={{
+              backgroundColor: '#aaa',
+              width: 100,
+              height: 2,
+              borderRadius: 1,
+              marginTop: 15,
+            }}
+          />
           {!groupSubmitted ? (
             <>
               <Text style={styles.modalTitle}>가든 선택하기</Text>
@@ -386,25 +488,34 @@ const MeetingListScreen = ({navigation}) => {
                       value={durationAllDayLong}
                     />
                   </View>
-                  <TouchableOpacity
-                    style={styles.durationCell}
-                    disabled={durationAllDayLong}
-                    onPress={() => setStartPickerVisible(true)}>
+                  <View style={styles.durationCell}>
                     {isPlatformIOS ? (
                       <Body3>시작하는 시간</Body3>
                     ) : (
-                      <Text
-                        style={
-                          durationAllDayLong
-                            ? {...styles.durationText, color: 'gray'}
-                            : styles.durationText
-                        }>
-                        {`${meetingStartDateTime.getFullYear()}년 ${
-                          meetingStartDateTime.getMonth() + 1
-                        }월 ${meetingStartDateTime.getDate()}일`}
-                      </Text>
+                      <>
+                        <TouchableOpacity
+                          onPress={() => setStartDatePickerVisible(true)}>
+                          <Text style={styles.durationText}>
+                            {`${meetingStartDateTime.getFullYear()}년 ${
+                              meetingStartDateTime.getMonth() + 1
+                            }월 ${meetingStartDateTime.getDate()}일`}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={durationAllDayLong}
+                          onPress={() => setStartTimePickerVisible(true)}>
+                          <Text
+                            style={
+                              durationAllDayLong
+                                ? {...styles.durationText, color: 'gray'}
+                                : styles.durationText
+                            }>
+                            {`${meetingStartDateTime.getHours()}시 ${meetingStartDateTime.getMinutes()}분부터`}
+                          </Text>
+                        </TouchableOpacity>
+                      </>
                     )}
-                    {startPickerVisible && (
+                    {startDatePickerVisible && (
                       <DateTimePicker
                         value={meetingStartDateTime}
                         minimumDate={sourceDate}
@@ -416,31 +527,58 @@ const MeetingListScreen = ({navigation}) => {
                         mode={isPlatformIOS ? 'datetime' : 'date'}
                       />
                     )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                    {!isPlatformIOS && startTimePickerVisible && (
+                      <DateTimePicker
+                        value={meetingStartDateTime}
+                        minimumDate={sourceDate}
+                        onChange={handleStartPicker}
+                        minuteInterval={5}
+                        locale="ko-KR"
+                        mode="time"
+                        display="spinner"
+                      />
+                    )}
+                  </View>
+                  <View
                     style={{
                       ...styles.durationCell,
                       borderBottomLeftRadius: 12,
                       borderBottomRightRadius: 12,
                       borderBottomWidth: 0,
-                    }}
-                    disabled={durationAllDayLong}
-                    onPress={() => setEndPickerVisible(true)}>
+                    }}>
                     {isPlatformIOS ? (
                       <Body3>끝나는 시간</Body3>
                     ) : (
-                      <Text
-                        style={
-                          durationAllDayLong
-                            ? {...styles.durationText, color: 'gray'}
-                            : styles.durationText
-                        }>
-                        {`${meetingEndDateTime.getFullYear()}년 ${
-                          meetingEndDateTime.getMonth() + 1
-                        }월 ${meetingEndDateTime.getDate()}일`}
-                      </Text>
+                      <>
+                        <TouchableOpacity
+                          disabled={durationAllDayLong}
+                          onPress={() => setEndDatePickerVisible(true)}>
+                          <Text
+                            style={
+                              durationAllDayLong
+                                ? {...styles.durationText, color: 'gray'}
+                                : styles.durationText
+                            }>
+                            {`${meetingEndDateTime.getFullYear()}년 ${
+                              meetingEndDateTime.getMonth() + 1
+                            }월 ${meetingEndDateTime.getDate()}일`}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={durationAllDayLong}
+                          onPress={() => setEndTimePickerVisible(true)}>
+                          <Text
+                            style={
+                              durationAllDayLong
+                                ? {...styles.durationText, color: 'gray'}
+                                : styles.durationText
+                            }>
+                            {`${meetingEndDateTime.getHours()}시 ${meetingEndDateTime.getMinutes()}분까지`}
+                          </Text>
+                        </TouchableOpacity>
+                      </>
                     )}
-                    {endPickerVisible && (
+                    {endDatePickerVisible && (
                       <DateTimePicker
                         value={meetingEndDateTime}
                         minimumDate={meetingStartDateTime}
@@ -450,12 +588,26 @@ const MeetingListScreen = ({navigation}) => {
                         minuteInterval={5}
                         locale="ko-KR"
                         mode={isPlatformIOS ? 'datetime' : 'date'}
+                        disabled={durationAllDayLong}
                       />
                     )}
-                  </TouchableOpacity>
+                    {!isPlatformIOS && endTimePickerVisible && (
+                      <DateTimePicker
+                        value={meetingEndDateTime}
+                        minimumDate={meetingStartDateTime}
+                        onChange={handleEndPicker}
+                        minuteInterval={5}
+                        locale="ko-KR"
+                        mode="time"
+                        display="spinner"
+                      />
+                    )}
+                  </View>
                 </View>
                 <Text style={styles.durationTitle}>장소</Text>
-                <TouchableOpacity style={styles.placeContainer}>
+                <TouchableOpacity
+                  style={styles.placeContainer}
+                  onPress={handleAddPlace}>
                   <MaterialCommunityIcons
                     name="map-marker-outline"
                     size={26}

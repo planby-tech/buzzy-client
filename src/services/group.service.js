@@ -43,7 +43,7 @@ const joinGroup = async (userId, groupCode) => {
 const findByGroup = async (userId, groupId) => {
   const header = await authHeader();
   return axios
-    .get(API_URL + `/users/${userId}/groups/${groupId}/users`, {
+    .get(`${API_URL}/users/${userId}/groups/${groupId}/users`, {
       headers: header,
     })
     .then(res => {

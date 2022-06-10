@@ -1,4 +1,4 @@
-import {createSlice, createAsyncThunk, createAction} from '@reduxjs/toolkit';
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {setMessage} from './message';
 import userService from '../../services/user.service';
 
@@ -6,9 +6,9 @@ export const findByUser = createAsyncThunk(
   'users/findGroups',
   async (userId, thunkAPI) => {
     try {
-      console.log('userId in findByUser in user.js: ' + userId);
+      // console.log('userId in findByUser in user.js: ' + userId);
       const data = await userService.findByUser(userId);
-      console.log('data in findByUser in user.js: ' + JSON.stringify(data));
+      // console.log('data in findByUser in user.js: ' + JSON.stringify(data));
       if (data) return {groupArray: data};
       return null;
     } catch (error) {

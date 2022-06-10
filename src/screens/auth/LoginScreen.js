@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
+import {showMessage, hideMessage} from 'react-native-flash-message';
 import {login, loadUserData} from '../../redux/slices/auth';
 import {clearMessage} from '../../redux/slices/message';
 import {View, TextInput, Button, Text, StyleSheet, LogBox} from 'react-native';
@@ -30,7 +31,15 @@ const LoginScreen = ({navigation}) => {
     setLoading(true);
     dispatch(login({email, password}))
       .unwrap()
-      .then(setLoading(false))
+      .then(res => {
+        if (res.user.accessToken) {
+          setLoading(false);
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Splash'}],
+          });
+        }
+      })
       .catch(() => {
         setLoading(false);
       });
@@ -41,18 +50,26 @@ const LoginScreen = ({navigation}) => {
   };
 
   useEffect(() => {
-    dispatch(loadUserData()).unwrap();
-  }, [dispatch]);
+    showMessage({
+      message:
+        '유저 데이터를 불러 오는 데 실패하였습니다. 다시 로그인 해주세요.',
+      type: 'warning',
+    });
+  }, []);
 
-  useEffect(() => {
-    console.log('isLoggedIn in LoginScreen.js useEffect: ' + isLoggedIn);
-    if (isLoggedIn) {
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Splash'}],
-      });
-    }
-  }, [isLoggedIn]);
+  // useEffect(() => {
+  //   dispatch(loadUserData()).unwrap();
+  // }, [dispatch]);
+
+  // useEffect(() => {
+  //   console.log('isLoggedIn in LoginScreen.js useEffect: ' + isLoggedIn);
+  //   if (isLoggedIn) {
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{name: 'Splash'}],
+  //     });
+  //   }
+  // }, [isLoggedIn]);
 
   return (
     <View style={styles.loginContainer}>
