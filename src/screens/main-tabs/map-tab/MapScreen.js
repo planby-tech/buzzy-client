@@ -6,13 +6,18 @@ import {
   TextInput,
   Dimensions,
   StatusBar,
+  Linking,
+  Alert,
+  PermissionsAndroid,
+  Platform,
+  ToastAndroid,
 } from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
+import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
 import MyLocationButton from '../../../components/map-buttons/MyLocationButton.js';
 import AddMarkerButton from '../../../components/map-buttons/AddMarkerButton.js';
 import SearchButton from '../../../components/map-buttons/SearchButton.js';
-// import * as Location from "expo-location";
 import MapViewDirections from 'react-native-maps-directions';
 import {
   widthPercentageToDP as wp,
@@ -20,14 +25,17 @@ import {
 } from 'react-native-responsive-screen';
 import {useSelector} from 'react-redux';
 
-const Map = ({navigation}) => {
-  const [mapRegion, setMapRegion] = useState({
+const MapScreen = ({navigation}) => {
+  const initialMapRegion = {
     latitude: 36.35948,
     longitude: 127.37895,
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
-  });
+  };
+  const [mapRegion, setMapRegion] = useState(initialMapRegion);
   const [placeName, setPlaceName] = useState('');
+  const [highAccuracy, setHighAccuracy] = useState(true);
+
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -35,17 +43,91 @@ const Map = ({navigation}) => {
 
   const {isLoggedIn} = useSelector(state => state.auth);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     let { status } = await Location.requestForegroundPermissionsAsync();
-  //     if (status !== "granted") {
-  //       setErrorMsg("Permission to access location was denied");
-  //       return;
-  //     }
-  //     let initLocation = await Location.getCurrentPositionAsync({});
-  //     setLocation(initLocation);
-  //   })();
-  // }, []);
+  useEffect(() => {
+    if (hasLocationPermission) {
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log(position);
+        },
+        error => {
+          // See error code charts below.
+          console.log(error.code, error.message);
+        },
+        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+      );
+    }
+  }, []);
+
+  const hasPermissionIOS = async () => {
+    const openSetting = () => {
+      Linking.openSettings().catch(() => {
+        Alert.alert('Unable to open settings');
+      });
+    };
+    const status = await Geolocation.requestAuthorization('whenInUse');
+
+    if (status === 'granted') {
+      return true;
+    }
+
+    if (status === 'denied') {
+      Alert.alert('Location permission denied');
+    }
+
+    if (status === 'disabled') {
+      Alert.alert(
+        `Turn on Location Services to allow "${appConfig.displayName}" to determine your location.`,
+        '',
+        [
+          {text: 'Go to Settings', onPress: openSetting},
+          {text: "Don't Use Location", onPress: () => {}},
+        ],
+      );
+    }
+
+    return false;
+  };
+
+  const hasLocationPermission = async () => {
+    if (Platform.OS === 'ios') {
+      const hasPermission = await hasPermissionIOS();
+      return hasPermission;
+    }
+
+    if (Platform.OS === 'android' && Platform.Version < 23) {
+      return true;
+    }
+
+    const hasPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+
+    if (hasPermission) {
+      return true;
+    }
+
+    const status = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+
+    if (status === PermissionsAndroid.RESULTS.GRANTED) {
+      return true;
+    }
+
+    if (status === PermissionsAndroid.RESULTS.DENIED) {
+      ToastAndroid.show(
+        'Location permission denied by user.',
+        ToastAndroid.LONG,
+      );
+    } else if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+      ToastAndroid.show(
+        'Location permission revoked by user.',
+        ToastAndroid.LONG,
+      );
+    }
+
+    return false;
+  };
 
   const searchTest = async () => {
     const apiKey = '0d354750cc5df9c00497abcd507c89d5';
@@ -58,6 +140,7 @@ const Map = ({navigation}) => {
     const searchLocation = coord.data.documents[0];
     const xCoord = searchLocation.x;
     const yCoord = searchLocation.y;
+    console.log(xCoord, yCoord);
 
     setPlaceName(placeName);
 
@@ -70,14 +153,39 @@ const Map = ({navigation}) => {
     });
   };
 
-  const myLocation = newLocation => {
-    let newLatitude = newLocation.coords.latitude;
-    let newLongitude = newLocation.coords.longitude;
-    setMapRegion({
-      ...mapRegion,
-      latitude: newLatitude,
-      longitude: newLongitude,
-    });
+  const handleMyLocation = async () => {
+    const hasPermission = await hasLocationPermission();
+
+    if (!hasPermission) {
+      return;
+    }
+
+    Geolocation.getCurrentPosition(
+      position => {
+        setLocation(position);
+        console.log(position);
+        setMapRegion({
+          ...mapRegion,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      error => {
+        Alert.alert(`Code ${error.code}`, error.message);
+        setLocation(null);
+        console.log(error);
+      },
+      {
+        accuracy: {
+          android: 'high',
+          ios: 'best',
+        },
+        enableHighAccuracy: highAccuracy,
+        timeout: 15000,
+        maximumAge: 10000,
+        distanceFilter: 0,
+      },
+    );
   };
 
   const [pathDestination, setPathDestination] = useState({});
@@ -268,82 +376,79 @@ const Map = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <View>
-        <StatusBar />
-        <MapView
-          style={styles.map}
-          region={mapRegion}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-          loadingEnabled={true}
-          showsBuildings={true}
-          customMapStyle={customStyle}>
-          {!isSearchSubmitted ? null : (
-            <Marker
-              coordinate={mapRegion}
-              title={placeName}
-              description="우리 여기서 일해요"
-              onPress={e => {
-                pathFind(e.nativeEvent.coordinate);
-              }}
-            />
-          )}
-          {!isPathActivated ? null : (
-            <MapViewDirections
-              origin={{
-                latitude: 37.47656223234824,
-                latitudeDelta: 0.003,
-                longitude: 126.98155858357366,
-                longitudeDelta: 0.003,
-              }}
-              destination={{
-                latitude: 37.4755845620958,
-                latitudeDelta: 0.003,
-                longitude: 126.987966657679,
-                longitudeDelta: 0.003,
-              }}
-              apikey={'AIzaSyCrUq-EHAwdB_IAqhUFYqhuEeY7dX9amb4'}
-              mode={'TRANSIT'}
-              strokeWidth={3}
-              strokeColor="hotpink"
-            />
-          )}
-        </MapView>
-        <TextInput
-          onChangeText={searchName => setPlaceName(searchName)}
-          onSubmitEditing={() => searchTest()}
-          placeholder={'검색할 장소를 입력하세요'}
-          style={styles.searchInputBox}
-        />
-        <SearchButton navigation={navigation} />
-        <AddMarkerButton />
-        <MyLocationButton updateLocation={myLocation} />
-
-        <View
-          style={{
-            height: '100%',
-            width: 20,
-            zIndex: 2,
-            position: 'absolute',
-            backgroundColor: 'rgba(0,0,0,0)',
-          }}
-        />
-      </View>
+      <MapView
+        style={styles.map}
+        region={mapRegion}
+        showsUserLocation
+        showsMyLocationButton
+        loadingEnabled
+        showsBuildings
+        userInterfaceStyle="dark"
+        customMapStyle={customStyle}>
+        {!isSearchSubmitted ? null : (
+          <Marker
+            coordinate={mapRegion}
+            title={placeName}
+            description="우리 여기서 일해요"
+            onPress={e => {
+              pathFind(e.nativeEvent.coordinate);
+            }}
+          />
+        )}
+        {isPathActivated && (
+          <MapViewDirections
+            origin={{
+              latitude: 37.47656223234824,
+              latitudeDelta: 0.003,
+              longitude: 126.98155858357366,
+              longitudeDelta: 0.003,
+            }}
+            destination={{
+              latitude: 37.4755845620958,
+              latitudeDelta: 0.003,
+              longitude: 126.987966657679,
+              longitudeDelta: 0.003,
+            }}
+            apikey={'AIzaSyC8JB0IEQQ_nPoz_YfDy5qZLSxBLFUHdB4'}
+            mode={'TRANSIT'}
+            strokeWidth={3}
+            strokeColor="hotpink"
+          />
+        )}
+      </MapView>
+      <TextInput
+        onChangeText={searchName => setPlaceName(searchName)}
+        onSubmitEditing={() => searchTest()}
+        placeholder={'검색할 장소를 입력하세요'}
+        style={styles.searchInputBox}
+      />
+      {/* <SearchButton navigation={navigation} /> */}
+      <AddMarkerButton />
+      {Platform.OS === 'ios' && <MyLocationButton onPress={handleMyLocation} />}
+      {/* 
+      <View
+        style={{
+          height: '100%',
+          width: 20,
+          zIndex: 2,
+          position: 'absolute',
+          backgroundColor: 'rgba(0,0,0,0)',
+        }}
+      /> */}
     </View>
   );
 };
-export default Map;
+export default MapScreen;
 
-const {height} = Dimensions.get('screen');
+const {width, height} = Dimensions.get('screen');
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   map: {
-    width: wp(100),
-    height: height - 80,
-    zIndex: -1,
+    width: width,
+    height: height - 130,
   },
   searchInputBox: {
     position: 'absolute',

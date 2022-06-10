@@ -7,13 +7,14 @@ import {
 } from 'react-native-responsive-screen';
 import Svg, {Path} from 'react-native-svg';
 
-const MyLocationButton = props => {
+const MyLocationButton = ({onPress}) => {
   return (
     <View>
       <View>
         <TouchableOpacity
           activeOpacity={0.8}
           style={styles.button}
+          onPress={onPress}
           // onPress={async () =>
           //   props.updateLocation(
           //     await Location.getCurrentPositionAsync({

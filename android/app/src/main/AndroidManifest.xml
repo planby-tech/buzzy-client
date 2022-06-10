@@ -2,6 +2,8 @@
   package="com.buzzyclient">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
       android:name=".MainApplication"
@@ -24,6 +26,6 @@
       </activity>
       <meta-data
         android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyCrUq-EHAwdB_IAqhUFYqhuEeY7dX9amb4"/>
+        android:value="AIzaSyC8JB0IEQQ_nPoz_YfDy5qZLSxBLFUHdB4"/>
     </application>
 </manifest>

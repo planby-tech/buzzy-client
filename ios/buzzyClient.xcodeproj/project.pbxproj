@@ -17,6 +17,7 @@
 		787A76EA7F854B0191999A35 /* SUIT-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8F2AD3FCC21947469E61086C /* SUIT-Regular.otf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		824DEA7BC55948DAB4CD94C3 /* Pretendard-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A22BFF4D864E4D3883BF7B59 /* Pretendard-SemiBold.otf */; };
+		8A88206A2852430600E02CDF /* buzzySwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8820692852430600E02CDF /* buzzySwift.swift */; };
 		B3EC50B9749D410D82305ADD /* SUIT-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 29F3BB63916247A4A9B7CED1 /* SUIT-Bold.otf */; };
 		B8AFC580999245A69E4D51BB /* SUIT-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6509E477B46F43E3AFDEEED2 /* SUIT-SemiBold.otf */; };
 		E11A93439FA64A93A9012796 /* Pretendard-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = B1E7FB6A974C4A5084FEDC36 /* Pretendard-Bold.otf */; };
@@ -64,6 +65,8 @@
 		897135D1DEC34DBCA4AB6173 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		897FD26D9E394B689D0B8A79 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-buzzyClient-buzzyClientTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-buzzyClient-buzzyClientTests.release.xcconfig"; path = "Target Support Files/Pods-buzzyClient-buzzyClientTests/Pods-buzzyClient-buzzyClientTests.release.xcconfig"; sourceTree = "<group>"; };
+		8A8820682852430600E02CDF /* buzzyClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "buzzyClient-Bridging-Header.h"; sourceTree = "<group>"; };
+		8A8820692852430600E02CDF /* buzzySwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = buzzySwift.swift; sourceTree = "<group>"; };
 		8F2AD3FCC21947469E61086C /* SUIT-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "SUIT-Regular.otf"; path = "../src/assets/fonts/SUIT-Regular.otf"; sourceTree = "<group>"; };
 		9010A8204255431BB065EA6C /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		A22BFF4D864E4D3883BF7B59 /* Pretendard-SemiBold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Pretendard-SemiBold.otf"; path = "../src/assets/fonts/Pretendard-SemiBold.otf"; sourceTree = "<group>"; };
@@ -144,6 +147,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				8A8820692852430600E02CDF /* buzzySwift.swift */,
 				13B07FAE1A68108700A75B9A /* buzzyClient */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* buzzyClientTests */,
@@ -151,6 +155,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
 				8F2C3A48983A4A259DFBFD74 /* Resources */,
+				8A8820682852430600E02CDF /* buzzyClient-Bridging-Header.h */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -263,7 +268,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1340;
 					};
 				};
 			};
@@ -440,6 +445,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				8A88206A2852430600E02CDF /* buzzySwift.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -458,6 +464,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-buzzyClient-buzzyClientTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -485,6 +492,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-buzzyClient-buzzyClientTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = buzzyClientTests/Info.plist;
@@ -511,7 +519,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = buzzyClient/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -525,6 +536,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = buzzyClient;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "buzzyClient-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -537,7 +550,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = buzzyClient/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -550,6 +566,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = buzzyClient;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "buzzyClient-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
