@@ -12,47 +12,45 @@ const SplashScreen = ({navigation}) => {
       .unwrap()
       .then(res => {
         console.log('res in Splash: ' + JSON.stringify(res));
-        setTimeout(() => {
-          if (res.user !== null) {
-            console.log(res.user.accessToken);
-            console.log(
-              'res.user.user.id in SplashScreen: ' + res.user.user.id,
-            );
-            dispatch(findByUser(res.user.user.id))
-              .unwrap()
-              .then(data => {
-                console.log('data in SplashScreen.js: ' + JSON.stringify(data));
-                if (data.groupArray.length >= 0) {
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: 'GardenTabs',
-                      },
-                    ],
-                  });
-                } else {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{name: 'Login'}],
-                  });
-                }
-              })
-              .catch(err => {
-                console.log('here!' + err);
+        // setTimeout(() => {
+        if (res.user !== null) {
+          console.log(res.user.accessToken);
+          console.log('res.user.user.id in SplashScreen: ' + res.user.user.id);
+          dispatch(findByUser(res.user.user.id))
+            .unwrap()
+            .then(data => {
+              console.log('data in SplashScreen.js: ' + JSON.stringify(data));
+              if (data.groupArray.length >= 0) {
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'GardenTabs',
+                    },
+                  ],
+                });
+              } else {
                 navigation.reset({
                   index: 0,
                   routes: [{name: 'Login'}],
                 });
+              }
+            })
+            .catch(err => {
+              console.log('here!' + err);
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'Login'}],
               });
-          } else {
-            console.log('userData not found2');
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'Login'}],
             });
-          }
-        }, 300); //setTimeout 빼도 됨.
+        } else {
+          console.log('userData not found2');
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Login'}],
+          });
+        }
+        // }, 300); //setTimeout 빼도 됨.
       })
       .catch(err => {
         console.log('SplashScreen gotcha!' + JSON.stringify(err.message));
