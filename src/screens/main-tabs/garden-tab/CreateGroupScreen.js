@@ -5,11 +5,6 @@ import * as Yup from 'yup';
 import {clearMessage} from '../../../redux/slices/message';
 import {View, TextInput, Text, StyleSheet} from 'react-native';
 import {createGroup} from '../../../redux/slices/group';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
-import {GREEN_COLOR} from '../../../common/colors';
 import Button from '../../../components/common/SubmitButton';
 
 const CreateGroupScreen = ({navigation, userId}) => {

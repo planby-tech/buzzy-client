@@ -11,9 +11,11 @@ import {
   PermissionsAndroid,
   Platform,
   ToastAndroid,
+  Image,
 } from 'react-native';
-import MapView, {Marker} from 'react-native-maps';
+import MapView, {Marker, enableLatestRenderer} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
+import {showMessage} from 'react-native-flash-message';
 import axios from 'axios';
 import MyLocationButton from '../../../components/map-buttons/MyLocationButton.js';
 import AddMarkerButton from '../../../components/map-buttons/AddMarkerButton.js';
@@ -23,39 +25,108 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import Modal from 'react-native-modal';
+import NfcManager, {NfcTech} from 'react-native-nfc-manager';
+import {tagging} from '../../../redux/slices/tag';
+
+import EwhaGray15xImg from '../../../assets/images/Ewha-gray-1.5x.png';
+import EwhaColor15xImg from '../../../assets/images/Ewha-color-1.5x.png';
+import {
+  Heading2,
+  Heading3,
+  Heading5,
+} from '../../../components/design-system/FontSystem.js';
+import Button from '../../../components/common/SubmitButton.js';
+import {MainWrapper} from '../../../components/common/MainWrapper.js';
+
+NfcManager.start();
+enableLatestRenderer();
 
 const MapScreen = ({navigation}) => {
-  const initialMapRegion = {
-    latitude: 36.35948,
-    longitude: 127.37895,
-    latitudeDelta: 0.003,
-    longitudeDelta: 0.003,
-  };
-  const [mapRegion, setMapRegion] = useState(initialMapRegion);
+  const landmarkList = [
+    {
+      title: '카이스트',
+      tagUid: '042E9B32697380',
+      latitude: 36.37049682178313,
+      longitude: 127.36128608273715,
+      graySource: EwhaGray15xImg,
+      colorSource: EwhaColor15xImg,
+    },
+    {
+      title: '이화여자대학교',
+      tagUid: '042E9F32697380',
+      latitude: 37.562544705628845,
+      longitude: 126.94765009467245,
+      graySource: EwhaGray15xImg,
+      colorSource: EwhaColor15xImg,
+    },
+    {
+      title: '역삼역 4번 출구',
+      tagUid: '04F21BFA9D7180',
+      latitude: 37.500516238601826,
+      longitude: 127.03515980477283,
+      graySource: EwhaGray15xImg,
+      colorSource: EwhaColor15xImg,
+    },
+  ];
+  const [mapRegion, setMapRegion] = useState(null);
   const [placeName, setPlaceName] = useState('');
-  const [highAccuracy, setHighAccuracy] = useState(true);
-
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
-
   const [isSearchSubmitted, setIsSearchSubmitted] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedLandmark, setSelectedLandmark] = useState(null);
 
   const {isLoggedIn} = useSelector(state => state.auth);
 
-  useEffect(() => {
-    if (hasLocationPermission) {
-      Geolocation.getCurrentPosition(
-        position => {
-          console.log(position);
-        },
-        error => {
-          // See error code charts below.
-          console.log(error.code, error.message);
-        },
-        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-      );
+  const dispatch = useDispatch();
+
+  async function readNdef(landmark) {
+    try {
+      // register for the NFC tag with NDEF in it
+      await NfcManager.requestTechnology(NfcTech.Ndef);
+      // the resolved tag object will contain `ndefMessage` property
+      const tag = await NfcManager.getTag();
+      console.log('Tag found', tag.id);
+      if (landmark.tagUid === tag.id) {
+        dispatch(tagging({groupId: 1, tagUid: landmark.tagUid}))
+          .unwrap()
+          .then(res => console.log(res));
+      } else {
+        showMessage({
+          message: '선택하신 랜드마크와 맞는 NFC 태그가 아닙니다.',
+          type: 'warning',
+        });
+      }
+    } catch (ex) {
+      console.warn('Oops!', ex);
+    } finally {
+      // stop the nfc scanning
+      NfcManager.cancelTechnologyRequest();
+      handleModalClose();
     }
+  }
+
+  useEffect(() => {
+    hasLocationPermission().then(res => {
+      if (res) {
+        Geolocation.getCurrentPosition(
+          position => {
+            console.log(position);
+            setMapRegion({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              latitudeDelta: 0.007,
+              longitudeDelta: 0.007,
+            });
+          },
+          error => {
+            // See error code charts below.
+            console.log(error.code, error.message);
+          },
+          {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+        );
+      }
+    });
   }, []);
 
   const hasPermissionIOS = async () => {
@@ -180,7 +251,7 @@ const MapScreen = ({navigation}) => {
           android: 'high',
           ios: 'best',
         },
-        enableHighAccuracy: highAccuracy,
+        enableHighAccuracy: true,
         timeout: 15000,
         maximumAge: 10000,
         distanceFilter: 0,
@@ -189,7 +260,6 @@ const MapScreen = ({navigation}) => {
   };
 
   const [pathDestination, setPathDestination] = useState({});
-  const [isPathActivated, setIsPathActivated] = useState(false);
 
   const pathFind = destination => {
     let desLat = destination.latitude;
@@ -246,6 +316,24 @@ const MapScreen = ({navigation}) => {
         },
       ],
     },
+    {
+      featureType: 'administrative.locality',
+      elementType: 'labels.text.fill',
+      stylers: [
+        {
+          color: '#d59563',
+        },
+      ],
+    },
+    // {
+    //   featureType: 'landscape.man_made',
+    //   elementType: 'geometry',
+    //   stylers: [
+    //     {
+    //       color: '#80848b',
+    //     },
+    //   ],
+    // },
     {
       featureType: 'poi',
       elementType: 'labels.text.fill',
@@ -374,68 +462,113 @@ const MapScreen = ({navigation}) => {
     },
   ];
 
+  const handleMarkerPress = landmark => {
+    setSelectedLandmark(landmark);
+    readNdef(landmark);
+    setModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+  };
+
   return (
-    <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        region={mapRegion}
-        showsUserLocation
-        showsMyLocationButton
-        loadingEnabled
-        showsBuildings
-        userInterfaceStyle="dark"
-        customMapStyle={customStyle}>
-        {!isSearchSubmitted ? null : (
-          <Marker
-            coordinate={mapRegion}
-            title={placeName}
-            description="우리 여기서 일해요"
-            onPress={e => {
-              pathFind(e.nativeEvent.coordinate);
-            }}
+    <>
+      {mapRegion ? (
+        <View style={styles.container}>
+          <MapView
+            style={styles.map}
+            region={mapRegion}
+            showsUserLocation
+            showsMyLocationButton
+            loadingEnabled
+            showsBuildings
+            userInterfaceStyle="dark"
+            customMapStyle={customStyle}>
+            {landmarkList.map(landmark => {
+              return (
+                <Marker
+                  coordinate={{
+                    latitude: landmark.latitude,
+                    longitude: landmark.longitude,
+                  }}
+                  key={landmark.tagUid}
+                  image={landmark.graySource}
+                  title={landmark.title}
+                  description="약속 장소로 설정 시 랜드마크 지급!"
+                  onPress={() => handleMarkerPress(landmark)}
+                />
+              );
+            })}
+          </MapView>
+          <Modal
+            isVisible={modalVisible}
+            onModalHide={handleModalClose}
+            onBackdropPress={handleModalClose}
+            onSwipeComplete={handleModalClose}
+            onBackButtonPress={handleModalClose}
+            swipeDirection="down"
+            style={{margin: 0, padding: 0}}>
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                alignItems: 'center',
+                width: '100%',
+                height: '55%',
+                backgroundColor: '#3a3a3a',
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+              }}>
+              <View
+                style={{
+                  backgroundColor: '#aaa',
+                  width: 100,
+                  height: 2,
+                  borderRadius: 1,
+                  marginTop: 15,
+                }}
+              />
+              <Heading2 style={{marginTop: 20}}>NFC 태그</Heading2>
+              <Image
+                source={
+                  selectedLandmark
+                    ? selectedLandmark.graySource
+                    : EwhaColor15xImg
+                }
+                style={{width: 120, height: 120, marginTop: 32}}
+                resizeMode="contain"
+              />
+              <Heading5 style={{marginTop: 32}}>
+                핸드폰을 NFC 스티커에 태그해 보세요.
+              </Heading5>
+              <Heading5>특별한 랜드마크를 받을 수 있어요!</Heading5>
+              <Button
+                title="취소"
+                onPress={handleModalClose}
+                style={{borderWidth: 0, width: '80%', marginTop: 32}}
+              />
+            </View>
+          </Modal>
+
+          <TextInput
+            onChangeText={searchName => setPlaceName(searchName)}
+            onSubmitEditing={() => searchTest()}
+            placeholder={'검색할 장소를 입력하세요'}
+            style={styles.searchInputBox}
           />
-        )}
-        {isPathActivated && (
-          <MapViewDirections
-            origin={{
-              latitude: 37.47656223234824,
-              latitudeDelta: 0.003,
-              longitude: 126.98155858357366,
-              longitudeDelta: 0.003,
-            }}
-            destination={{
-              latitude: 37.4755845620958,
-              latitudeDelta: 0.003,
-              longitude: 126.987966657679,
-              longitudeDelta: 0.003,
-            }}
-            apikey={'AIzaSyC8JB0IEQQ_nPoz_YfDy5qZLSxBLFUHdB4'}
-            mode={'TRANSIT'}
-            strokeWidth={3}
-            strokeColor="hotpink"
-          />
-        )}
-      </MapView>
-      <TextInput
-        onChangeText={searchName => setPlaceName(searchName)}
-        onSubmitEditing={() => searchTest()}
-        placeholder={'검색할 장소를 입력하세요'}
-        style={styles.searchInputBox}
-      />
-      {/* <SearchButton navigation={navigation} /> */}
-      <AddMarkerButton />
-      {Platform.OS === 'ios' && <MyLocationButton onPress={handleMyLocation} />}
-      {/* 
-      <View
-        style={{
-          height: '100%',
-          width: 20,
-          zIndex: 2,
-          position: 'absolute',
-          backgroundColor: 'rgba(0,0,0,0)',
-        }}
-      /> */}
-    </View>
+          {/* <SearchButton navigation={navigation} /> */}
+          <AddMarkerButton />
+          {Platform.OS === 'ios' && (
+            <MyLocationButton onPress={handleMyLocation} />
+          )}
+        </View>
+      ) : (
+        <MainWrapper style={{justifyContent: 'center', alignItems: 'center'}}>
+          <Heading3>지도를 불러오는 중입니다...</Heading3>
+        </MainWrapper>
+      )}
+    </>
   );
 };
 export default MapScreen;

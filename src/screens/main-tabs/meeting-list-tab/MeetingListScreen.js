@@ -243,7 +243,6 @@ const MeetingListScreen = ({navigation}) => {
       activities: activityIdList,
       users: userList,
     };
-    console.log(meetingObject);
     dispatch(createMeeting(meetingObject))
       .unwrap()
       .then(res => {
@@ -402,7 +401,6 @@ const MeetingListScreen = ({navigation}) => {
         onDayPress={day => handleSelectDay(day)}
         markedDates={{...selectedDate}}
       />
-      <Button title="NFC 기록하기" onPress={handleNavigateToNFC} />
       <Modal
         isVisible={modalVisible}
         onModalHide={handleModalClose}
