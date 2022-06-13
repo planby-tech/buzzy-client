@@ -12,12 +12,17 @@ import {
 } from 'react-native';
 import {joinGroup} from '../../../redux/slices/group';
 import Button from '../../../components/common/SubmitButton';
+import {MainWrapper} from '../../../components/common/MainWrapper';
+import ScreenHeader from '../../../components/common/ScreenHeader';
+import {Body3, Tiny} from '../../../components/design-system/FontSystem';
 
-const JoinGroupScreen = ({navigation, userId}) => {
+const JoinGroupScreen = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const {isLoggedIn} = useSelector(state => state.auth);
   const {message} = useSelector(state => state.message);
-  console.log('userId in JoinGroupScreen: ' + userId);
+  const {user} = useSelector(state => state.auth);
+  const userId = user ? user.user.id : 0;
+  // console.log('userId in JoinGroupScreen: ' + userId);
 
   const dispatch = useDispatch();
 
@@ -47,50 +52,53 @@ const JoinGroupScreen = ({navigation, userId}) => {
   };
 
   return (
-    <View style={{width: '100%', padding: 10}}>
+    <MainWrapper edgeSpacing={16}>
+      <ScreenHeader navigation={navigation} title="가든 초대 코드 입력하기" />
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleJoinGroup}>
         {({handleChange, handleBlur, handleSubmit, values, errors}) => (
           <>
-            <Text style={styles.inputTitle}>정원 초대 코드</Text>
-            <TextInput
-              name="groupCode"
-              placeholder="정원 초대 코드를 입력해 주세요."
-              style={styles.textInput}
-              onChangeText={handleChange('groupCode')}
-              onBlur={handleBlur('groupCode')}
-              value={values.groupCode}
-            />
-            {errors.name && (
-              <Text style={{fontSize: 10, color: 'tomato'}}>
-                {errors.groupCode}
-              </Text>
-            )}
-            <View style={{padding: 15}}>
-              <Button onPress={handleSubmit} title="정원 들어가기" />
+            <View style={{flex: 1}}>
+              <Body3 style={styles.inputTitle}>정원 초대 코드</Body3>
+              <TextInput
+                name="groupCode"
+                placeholder="정원 초대 코드를 입력해 주세요."
+                placeholderTextColor="#ccc"
+                style={styles.textInput}
+                onChangeText={handleChange('groupCode')}
+                onBlur={handleBlur('groupCode')}
+                value={values.groupCode}
+              />
+              {errors.groupCode && (
+                <Tiny style={{marginTop: 6, color: 'tomato'}}>
+                  {errors.groupCode}
+                </Tiny>
+              )}
             </View>
+            <Button onPress={handleSubmit} title="가든 참가하기" />
           </>
         )}
       </Formik>
-    </View>
+    </MainWrapper>
   );
 };
 
 const styles = StyleSheet.create({
   inputTitle: {
-    paddingLeft: 10,
-    color: '#fff',
+    marginTop: 48,
   },
   textInput: {
-    height: 40,
-    margin: 10,
-    paddingLeft: 10,
-    backgroundColor: 'white',
-    borderColor: 'gray',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 10,
+    height: 48,
+    width: '100%',
+    marginTop: 16,
+    paddingLeft: 16,
+    backgroundColor: '#202225',
+    borderRadius: 12,
+    color: '#fff',
+    fontFamily: 'SUIT-Regular',
+    fontSize: 16,
   },
   submitButton: {
     borderColor: '#fff',
