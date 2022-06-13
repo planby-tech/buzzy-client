@@ -5,7 +5,7 @@ import {MainWrapper} from '../../../components/common/MainWrapper';
 const GardenHomeScreen = ({route, navigation}) => {
   const groupInfo = route.params;
   return (
-    <MainWrapper>
+    <MainWrapper edgeSpacing={16}>
       <View style={{flexDirection: 'row'}}></View>
       <View
         style={{

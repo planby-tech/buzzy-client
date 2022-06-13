@@ -57,7 +57,7 @@ const GardenListColumnScreen = ({route, navigation}) => {
   };
 
   return (
-    <MainWrapper style={{padding: 16}}>
+    <MainWrapper edgeSpacing={16}>
       <View>
         <View style={styles.header}>
           <TouchableOpacity style={{padding: 8}} onPress={handleGoBack}>

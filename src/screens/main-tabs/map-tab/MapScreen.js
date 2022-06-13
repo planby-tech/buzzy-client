@@ -546,7 +546,7 @@ const MapScreen = ({navigation}) => {
               <Button
                 title="취소"
                 onPress={handleModalClose}
-                style={{borderWidth: 0, width: '80%', marginTop: 32}}
+                style={{borderWidth: 0, width: 300, marginTop: 32}}
               />
             </View>
           </Modal>

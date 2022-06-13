@@ -327,7 +327,7 @@ const MeetingListScreen = ({navigation}) => {
   };
 
   return (
-    <MainWrapper style={{padding: 20}}>
+    <MainWrapper edgeSpacing={16}>
       <View
         style={{
           flexDirection: 'row',
