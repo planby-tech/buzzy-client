@@ -25,7 +25,7 @@ const SplashScreen = ({navigation}) => {
                   index: 0,
                   routes: [
                     {
-                      name: 'GardenTabs',
+                      name: 'GardenList',
                     },
                   ],
                 });

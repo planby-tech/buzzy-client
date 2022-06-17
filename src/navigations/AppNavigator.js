@@ -14,6 +14,7 @@ import Profile from '../components/Profile';
 import AddGroupScreen from '../screens/main-tabs/garden-tab/AddGroupScreen';
 import {MainWrapper} from '../components/common/MainWrapper';
 import GardenHomeScreen from '../screens/main-tabs/garden-tab/GardenHomeScreen';
+import PostScreen from '../screens/main-tabs/meeting-list-tab/PostScreen';
 import LandingScreen from '../screens/landing/LandingScreen';
 import CreateGroupScreen from '../screens/main-tabs/garden-tab/CreateGroupScreen';
 import InvitationCodePublishScreen from '../screens/main-tabs/garden-tab/InvitationCodePublishScreen';
@@ -53,6 +54,7 @@ const AppNavigator = () => {
         />
         <MainStack.Screen name="News" component={NewsScreen} />
         <MainStack.Screen name="GardenHome" component={GardenHomeScreen} />
+        <MainStack.Screen name="Post" component={PostScreen} />
         <MainStack.Screen name="NFCTag" component={NFCTagScreen} />
         <MainStack.Screen name="AddGroup" component={AddGroupScreen} />
         <MainStack.Screen name="CreateGroup" component={CreateGroupScreen} />

@@ -5,7 +5,7 @@ import {Provider} from 'react-redux';
 import store from './src/redux/store';
 import AppNavigator from './src/navigations/AppNavigator';
 import FlashMessage from 'react-native-flash-message';
-import {LogBox} from 'react-native';
+import {LogBox, StatusBar} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 
 const App = () => {
@@ -14,10 +14,11 @@ const App = () => {
       SplashScreen.hide();
     }, 300);
   }, []);
-  LogBox.ignoreLogs(["exported from 'deprecated-react-native-prop-types'."]);
+  LogBox.ignoreLogs(['Possible Unhandled Promise Rejection']);
   return (
     <Provider store={store}>
       <NavigationContainer>
+        <StatusBar hidden />
         <AppNavigator />
       </NavigationContainer>
       <FlashMessage position="top" />

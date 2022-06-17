@@ -76,7 +76,7 @@ const GardenListScreen = ({navigation}) => {
 
   const groupListLayout = ({item}) => {
     const handleNavigate = () => {
-      navigation.navigate('GardenHome', item);
+      navigation.navigate('GardenTabs', item);
     };
     return (
       <TouchableOpacity

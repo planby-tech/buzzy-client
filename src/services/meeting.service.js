@@ -34,10 +34,12 @@ const createMeeting = async (
       console.log(error);
     });
 };
-const readMeeting = async userId => {
+const readMeeting = async (userId, groupId) => {
   const header = await authHeader();
   return axios
-    .get(API_URL + `/users/${userId}`, {headers: header})
+    .get(API_URL + `/users/${userId}/groups/${groupId}/meetings`, {
+      headers: header,
+    })
     .then(res => {
       return res;
     })

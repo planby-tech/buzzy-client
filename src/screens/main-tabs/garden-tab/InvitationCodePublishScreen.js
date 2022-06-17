@@ -24,7 +24,7 @@ const InvitationCodePublishScreen = ({navigation, route}) => {
   const handleNavigate = () => {
     navigation.reset({
       index: 0,
-      routes: [{name: 'GardenTabs'}],
+      routes: [{name: 'GardenList'}],
     });
   };
 

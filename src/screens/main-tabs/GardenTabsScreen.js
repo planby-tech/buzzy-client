@@ -3,11 +3,11 @@ import {StatusBar} from 'react-native';
 import {MainWrapper} from '../../components/common/MainWrapper';
 import GardenTabs from './GardenTabs';
 
-const GardenTabsScreen = () => {
+const GardenTabsScreen = ({route}) => {
   return (
     <MainWrapper>
-      <StatusBar barStyle="light-content" />
-      <GardenTabs />
+      <StatusBar barStyle="light-content" hidden />
+      <GardenTabs groupInfo={route.params} />
     </MainWrapper>
   );
 };

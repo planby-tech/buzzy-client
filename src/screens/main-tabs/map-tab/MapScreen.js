@@ -115,8 +115,8 @@ const MapScreen = ({navigation}) => {
             setMapRegion({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
-              latitudeDelta: 0.007,
-              longitudeDelta: 0.007,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1,
             });
           },
           error => {
@@ -580,8 +580,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   map: {
-    width: width,
-    height: height - 130,
+    height: height,
   },
   searchInputBox: {
     position: 'absolute',

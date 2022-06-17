@@ -58,6 +58,19 @@ const findByUser = async userId => {
       console.log(error);
     });
 };
+const readMeetings = async userId => {
+  const header = await authHeader();
+  return axios
+    .get(API_URL + `/users/${userId}/meetings`, {
+      headers: header,
+    })
+    .then(res => {
+      return res;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+};
 const userService = {
   getPublicContent,
   getUserBoard,
@@ -67,5 +80,6 @@ const userService = {
   updateUser,
   deleteUser,
   findByUser,
+  readMeetings,
 };
 export default userService;

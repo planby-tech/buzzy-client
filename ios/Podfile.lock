@@ -222,6 +222,8 @@ PODS:
     - glog
   - react-native-geolocation-service (5.3.0-beta.4):
     - React
+  - react-native-image-picker (4.8.4):
+    - React-Core
   - react-native-maps (0.31.1):
     - React-Core
   - react-native-nfc-manager (3.13.3):
@@ -335,6 +337,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
+  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-maps (from `../node_modules/react-native-maps`)
   - react-native-nfc-manager (from `../node_modules/react-native-nfc-manager`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -405,6 +408,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-geolocation-service:
     :path: "../node_modules/react-native-geolocation-service"
+  react-native-image-picker:
+    :path: "../node_modules/react-native-image-picker"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
   react-native-nfc-manager:
@@ -476,6 +481,7 @@ SPEC CHECKSUMS:
   React-jsinspector: c5989c77cb89ae6a69561095a61cce56a44ae8e8
   React-logger: a0833912d93b36b791b7a521672d8ee89107aff1
   react-native-geolocation-service: c0efb872258ed9240f1003a70fca9e9757e5c785
+  react-native-image-picker: 9f9eb160a4f4fc0702f9d0a60fa453b413258ef8
   react-native-maps: 8b8bfada2c86205a7f5a07dd1f92f29b33ea83aa
   react-native-nfc-manager: 2a22ffb7c3ebbb8b46c908b68b36b78e9f27030b
   react-native-safe-area-context: 5cf05f49df9d17261e40e518481f2e334c6cd4b5

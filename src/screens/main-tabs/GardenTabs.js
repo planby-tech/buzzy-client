@@ -1,49 +1,61 @@
-import MeetingListNavigator from './meeting-list-tab/MeetingListNavigator';
+// import MeetingListScreen from './meeting-list-tab/MeetingListScreen';
 import MapScreen from './map-tab/MapScreen';
 import MyScreen from './my-tab/MyScreen';
 
 import React from 'react';
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {GREEN_COLOR} from '../../common/colors';
-import GardenListScreen from './garden-tab/GardenListScreen';
+import GardenHomeScreen from './garden-tab/GardenHomeScreen';
+import {
+  FlowerIcon,
+  CalendarIcon,
+  MapIcon,
+  MessageIcon,
+} from '../../components/design-system/IconSystem';
+import MeetingListScreen from './meeting-list-tab/MeetingListScreen';
 
 const GardenTab = createMaterialBottomTabNavigator();
 
-const GardenTabs = ({groupInfoArray, userInfo}) => {
+const GardenTabs = ({groupInfo}) => {
+  const ICON_SIZE = 26;
   return (
     <GardenTab.Navigator
-      initialRouteName="GardenList"
+      initialRouteName="GardenHome"
       barStyle={{
-        backgroundColor: '#202020',
-        height: 60,
+        backgroundColor: '#202225',
+        height: 70,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        marginHorizontal: 16,
+        marginBottom: 16,
+        borderRadius: 20,
+        paddingHorizontal: 16,
       }}
-      activeColor={GREEN_COLOR}
-      inactiveColor="#fff">
+      activeColor="#86FD98"
+      inactiveColor="#fff"
+      labeled={false}>
       <GardenTab.Screen
-        name="GardenList"
-        component={GardenListScreen}
+        name="GardenHome"
+        children={() => {
+          return <GardenHomeScreen groupInfo={groupInfo} />;
+        }}
         options={{
           tabBarLabel: '정원',
           tabBarIcon: ({color}) => (
-            <MaterialCommunityIcons name="flower" size={26} color={color} />
+            <FlowerIcon color={color} size={ICON_SIZE} />
           ),
         }}
       />
       <GardenTab.Screen
-        name="MeetingListNavigator"
-        component={MeetingListNavigator}
+        name="MeetingList"
+        children={() => {
+          return <MeetingListScreen groupInfo={groupInfo} />;
+        }}
         options={{
           tabBarLabel: '약속 리스트',
           tabBarIcon: ({color}) => (
-            <MaterialCommunityIcons
-              name="format-list-checkbox"
-              size={26}
-              color={color}
-            />
+            <CalendarIcon color={color} size={ICON_SIZE} />
           ),
         }}
       />
@@ -52,13 +64,7 @@ const GardenTabs = ({groupInfoArray, userInfo}) => {
         component={MapScreen}
         options={{
           tabBarLabel: '지도',
-          tabBarIcon: ({color}) => (
-            <MaterialCommunityIcons
-              name="map-marker-outline"
-              size={26}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({color}) => <MapIcon color={color} size={ICON_SIZE} />,
         }}
       />
       <GardenTab.Screen
@@ -67,11 +73,7 @@ const GardenTabs = ({groupInfoArray, userInfo}) => {
         options={{
           tabBarLabel: '마이',
           tabBarIcon: ({color}) => (
-            <MaterialCommunityIcons
-              name="account-outline"
-              size={26}
-              color={color}
-            />
+            <MessageIcon color={color} size={ICON_SIZE} />
           ),
         }}
       />

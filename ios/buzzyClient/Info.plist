@@ -41,6 +41,12 @@
 	<string>Buzzy requires GPS to track users</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Buzzy requires GPS to track users</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Buzzy has photo upload feature</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Buzzy might use photo upload function using capture</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Buzzy might allow users to capture video to upload</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>

@@ -42,7 +42,7 @@ const JoinGroupScreen = ({navigation}) => {
     dispatch(joinGroup({userId: userId, groupCode: groupCode}))
       .unwrap()
       .then(() => {
-        navigation.navigate('GardenTabs');
+        navigation.navigate('GardenList');
         setLoading(false);
       })
       .catch(error => {

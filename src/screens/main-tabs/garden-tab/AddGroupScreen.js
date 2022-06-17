@@ -19,7 +19,7 @@ const AddGroupScreen = ({navigation}) => {
   const userId = user.user.id;
   const [type, setType] = useState('create');
   return (
-    <MainWrapper edgeSpacing={16}>
+    <MainWrapper>
       <View style={{display: 'flex', flexDirection: 'row'}}>
         <TouchableOpacity
           style={

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, SafeAreaView, StyleSheet, Platform} from 'react-native';
+import {SafeAreaView, StyleSheet, Platform} from 'react-native';
 
 export const MainWrapper = ({backgroundcolor = '#000000', ...props}) => {
   const styles = StyleSheet.create({

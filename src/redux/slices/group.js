@@ -60,6 +60,24 @@ export const findByGroup = createAsyncThunk(
     }
   },
 );
+export const readMeetings = createAsyncThunk(
+  'group/readMeetings',
+  async ({userId, groupId, month}, thunkAPI) => {
+    try {
+      const response = await groupService.readMeetings(userId, groupId, month);
+      thunkAPI.dispatch(setMessage(response.data.message));
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      const message =
+        (error.response && error.response.data && error.response.message) ||
+        error.message ||
+        error.toString();
+      thunkAPI.dispatch(setMessage(message));
+      return thunkAPI.rejectWithValue();
+    }
+  },
+);
 
 const initialState = {isLoggedIn: false, user: null, groupArray: null};
 const groupSlice = createSlice({
