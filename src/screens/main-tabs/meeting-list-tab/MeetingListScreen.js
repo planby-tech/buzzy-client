@@ -11,12 +11,11 @@ import {
   ScrollView,
   Platform,
   Image,
+  Keyboard,
 } from 'react-native';
 import {
   ExpandableCalendar,
-  Calendar,
   LocaleConfig,
-  Agenda,
   CalendarProvider,
   WeekCalendar,
 } from 'react-native-calendars';
@@ -31,25 +30,17 @@ import Button from '../../../components/common/SubmitButton';
 import {
   Body3,
   Heading3,
-  Heading5,
-  Tiny,
+  Heading4,
 } from '../../../components/design-system/FontSystem';
-import {
-  ClockIcon,
-  LeafIcon,
-  MenuDotsIcon,
-  PersonIcon,
-} from '../../../components/design-system/IconSystem';
-import GardenerImage from '../../../assets/images/Gardener';
 import {GREEN_COLOR} from '../../../common/colors';
-import NoFlower from '../../../assets/images/no-flower.png';
 
 import {createMeeting} from '../../../redux/slices/meeting';
-import {findByGroup, readMeetings} from '../../../redux/slices/group';
+import {readMeetings} from '../../../redux/slices/group';
 
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import Profile1 from '../../../assets/images/Profile-1.png';
 
-import {API_URL} from '../../../common/constant';
+import MeetingBlock from '../../../components/MeetingBlock';
+import {PlusIcon} from '../../../components/design-system/IconSystem';
 
 const MeetingListScreen = ({groupInfo}) => {
   const navigation = useNavigation();
@@ -80,7 +71,8 @@ const MeetingListScreen = ({groupInfo}) => {
   const [markedDates, setMarkedDates] = useState({});
   const [meetingDates, setMeetingDates] = useState({});
   const [meetingBlockVisible, setMeetingBlockVisible] = useState(false);
-  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [meetingArray, setMeetingArray] = useState(null);
+  const [selectedMeetings, setSelectedMeetings] = useState(null);
   // const [selectedGroup, setSelectedGroup] = useState({id: 0});
   const [modalVisible, setModalVisible] = useState(false);
   // const [isGroupSelected, setIsGroupSelected] = useState(false);
@@ -145,8 +137,13 @@ const MeetingListScreen = ({groupInfo}) => {
     dayTextColor: '#fff',
     textDisabledColor: '#2b2b2b',
     todayTextColor: GREEN_COLOR,
-    selectedDayBackgroundColor: '#1c1c1e',
+    selectedDayBackgroundColor: '#202225',
     dotColor: GREEN_COLOR,
+    selectedDotColor: GREEN_COLOR,
+    textDayFontFamily: 'SUIT-Regular',
+    textMonthFontFamily: 'SUIT-Regular',
+    textDayHeaderFontFamily: 'SUIT-Regular',
+    textDayFontSize: 14,
   };
 
   const initialActivityList = [
@@ -182,50 +179,52 @@ const MeetingListScreen = ({groupInfo}) => {
 
   const isFocused = useIsFocused();
   useEffect(() => {
-    setSourceDate(new Date());
+    if (isFocused) {
+      setSourceDate(new Date());
 
-    console.log(today.dateString);
+      setToday(dateToStr(sourceDate));
 
-    const groupId = groupInfo.id;
+      const groupId = groupInfo.id;
 
-    const loadedUserList = groupInfo.users.map(val => val.UserGroups.userId);
-    setUserList(loadedUserList);
+      const loadedUserList = groupInfo.users.map(val => val.UserGroups.userId);
+      setUserList(loadedUserList);
 
-    dispatch(readMeetings({userId, groupId, month: '06'}))
-      .unwrap()
-      .then(meetingArray => {
-        const meetingInfoArray = meetingArray.map(val => {
-          const startArray = val.start.split('/');
-          const endArray = val.end.split('/');
-          return {
-            startDate: startArray[0],
-            startTime: startArray[1],
-            endDate: endArray[0],
-            endTime: endArray[1],
-            title: val.title,
-            duration: val.duration,
-          };
+      dispatch(readMeetings({userId, groupId, month: '06'}))
+        .unwrap()
+        .then(meetingArray => {
+          console.log(JSON.stringify(meetingArray));
+          setMeetingArray(meetingArray);
+          const meetingInfoArray = meetingArray.map(val => {
+            const startArray = val.start.split('/');
+            const endArray = val.end.split('/');
+            return {
+              startDate: startArray[0],
+              startTime: startArray[1],
+              endDate: endArray[0],
+              endTime: endArray[1],
+              title: val.title,
+              duration: val.duration,
+            };
+          });
+          let cp = {...meetingDates};
+          for (let meetingInfo of meetingInfoArray) {
+            cp[`${meetingInfo.startDate}`] = {
+              marked: true,
+              // startingDay:
+              //   meetingInfo.duration &&
+              //   meetingInfo.duration[`${meetingInfo.startDate}`]?.start,
+            };
+            // cp[`${meetingInfo.endDate}`] = {
+            //   marked: true,
+            //   // endingDay:
+            //   //   meetingInfo.duration &&
+            //   //   meetingInfo.duration[`${meetingInfo.endDate}`]?.end,
+            // };
+          }
+          setMeetingDates(cp);
         });
-        console.log(JSON.stringify(meetingInfoArray));
-        const cp = {...meetingDates};
-        for (let meetingInfo of meetingInfoArray) {
-          cp[`${meetingInfo.startDate}`] = {
-            marked: true,
-            // startingDay:
-            //   meetingInfo.duration &&
-            //   meetingInfo.duration[`${meetingInfo.startDate}`]?.start,
-          };
-          // cp[`${meetingInfo.endDate}`] = {
-          //   marked: true,
-          //   // endingDay:
-          //   //   meetingInfo.duration &&
-          //   //   meetingInfo.duration[`${meetingInfo.endDate}`]?.end,
-          // };
-        }
-        console.log(cp);
-        setMeetingDates(cp);
-      });
-  }, [isFocused]);
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     setMarkedDates({...selectedDate, ...meetingDates});
@@ -235,15 +234,28 @@ const MeetingListScreen = ({groupInfo}) => {
   }, [meetingDates]);
 
   useEffect(() => {
+    const meetingYear = meetingStartDateTime.getFullYear();
+    const meetingMonthIdx = meetingStartDateTime.getMonth();
+    const meetingDate = meetingStartDateTime.getDate();
     if (durationAllDayLong) {
-      const meetingYear = meetingStartDateTime.getFullYear();
-      const meetingMonthIdx = meetingStartDateTime.getMonth();
-      const meetingDate = meetingStartDateTime.getDate();
       setMeetingEndDateTime(
         new Date(meetingYear, meetingMonthIdx, meetingDate, 23, 59),
       );
     }
-    if (!durationAllDayLong) setMeetingEndDateTime(meetingStartDateTime);
+    if (!durationAllDayLong) {
+      const meetingHour = meetingStartDateTime.getHours();
+      const meetingMinute = meetingStartDateTime.getMinutes();
+
+      setMeetingEndDateTime(
+        new Date(
+          meetingYear,
+          meetingMonthIdx,
+          meetingDate,
+          meetingHour + 1,
+          meetingMinute,
+        ),
+      );
+    }
   }, [meetingStartDateTime]);
 
   useEffect(() => {
@@ -265,9 +277,9 @@ const MeetingListScreen = ({groupInfo}) => {
     // setGroupSubmitted(false);
     // setIsGroupSelected(false);
     // setSelectedGroup({id: 0});
+    setModalVisible(false);
     setActivityList(initialActivityList);
     setMeetingTitle('');
-    setModalVisible(false);
     setDurationAllDayLong(false);
     setMeetingStartDateTime(sourceDate);
     setMeetingEndDateTime(sourceDate);
@@ -276,11 +288,13 @@ const MeetingListScreen = ({groupInfo}) => {
   const handleSelectDay = day => {
     console.log(day);
     setSelectedDay(day);
+    const filtered = meetingArray.filter(
+      val => val.start.split('/')[0] === day.dateString,
+    );
+    setSelectedMeetings(filtered);
     setSelectedDate({});
     const cp = {};
     cp[`${day.dateString}`] = {selected: true};
-
-    console.log(cp);
     setSelectedDate(cp);
     setMeetingBlockVisible(true);
   };
@@ -289,9 +303,9 @@ const MeetingListScreen = ({groupInfo}) => {
     setDurationAllDayLong(prev => !prev);
   };
 
-  const handleNavigateToNFC = () => {
-    navigation.navigate('NFCTag');
-  };
+  // const handleNavigateToNFC = () => {
+  //   navigation.navigate('NFCTag');
+  // };
 
   const handleStartPicker = (event, selectedStartDate) => {
     const currentDate = selectedStartDate || meetingStartDateTime;
@@ -331,18 +345,26 @@ const MeetingListScreen = ({groupInfo}) => {
 
   const handleCreateMeeting = () => {
     const groupId = groupInfo.id;
-    const activityIdList = activityList
-      .filter(val => val.selected)
-      .map(val => val.id);
+    // const activityIdList = activityList
+    //   .filter(val => val.selected)
+    //   .map(val => val.id);
     const meetingObject = {
       groupId: groupId,
-      title: meetingTitle,
+      title: meetingTitle === '' ? `${groupInfo.name}의 약속` : meetingTitle,
       start: meetingStartDateTime,
       end: meetingEndDateTime,
       allDay: durationAllDayLong,
-      places: placeList,
-      activities: activityIdList,
-      users: userList,
+      // places: placeList,
+      places: [
+        {
+          name: '이화여자대학교 조형예술대학 A동',
+          latitude: 37.5610609486686,
+          longitude: 126.948067642,
+        },
+      ],
+      // activities: activityIdList,
+      activities: [999],
+      users: [1],
     };
     dispatch(createMeeting(meetingObject))
       .unwrap()
@@ -351,79 +373,6 @@ const MeetingListScreen = ({groupInfo}) => {
         handleModalClose();
       })
       .catch(err => console.log(err));
-  };
-
-  const [imageOptions, setImageOptions] = useState({
-    // saveToPhotos: true,
-    mediaType: 'photo',
-    includeBase64: false,
-    quality: 0.3,
-    selectionLimit: 0,
-  });
-
-  const handleChooseImage = (type, options) => {
-    if (type === 'capture') {
-      launchCamera(options, photos => {
-        const data = new FormData();
-
-        data.append('photo', {
-          name: photos.assets[0].fileName,
-          type: photos.assets[0].type,
-          uri: photos.assets[0].uri,
-        });
-
-        console.log(JSON.stringify(data));
-
-        fetch(`${API_URL}/image`, {
-          method: 'post',
-          body: data,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        })
-          .then(response => {
-            console.log('response', response.data);
-          })
-          .catch(error => {
-            console.log('error', error);
-          });
-      });
-    } else {
-      launchImageLibrary(options, photos => {
-        const data = new FormData();
-        const imageArray = photos.assets?.map(val => {
-          return {
-            name: val.fileName,
-            type: val.type,
-            uri: val.uri,
-          };
-        });
-
-        console.log(JSON.stringify(imageArray));
-
-        data.append('photo', imageArray);
-
-        console.log(JSON.stringify(data));
-
-        fetch(`${API_URL}/image`, {
-          method: 'post',
-          body: data,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        })
-          .then(response => {
-            console.log('response', response.data);
-          })
-          .catch(error => {
-            console.log('error', error);
-          });
-      });
-    }
-  };
-
-  const handleNavigateToPost = () => {
-    navigation.navigate('Post', {groupInfo: groupInfo});
   };
 
   // const groupListLayout = ({item}) => {
@@ -502,20 +451,30 @@ const MeetingListScreen = ({groupInfo}) => {
   };
 
   return (
-    <MainWrapper edgeSpacing={16}>
+    <MainWrapper>
       <View
         style={{
+          margin: 16,
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: 15,
+          marginBottom: 0,
         }}>
+        <Image
+          source={Profile1}
+          style={{width: 28, height: 28, marginRight: 12}}
+          resizeMode="contain"
+        />
         <Heading3 style={{flex: 1}}>약속리스트</Heading3>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <MaterialCommunityIcons name="plus" size={30} color="#fff" />
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          style={{width: 28, height: 28}}>
+          <PlusIcon size={28} />
         </TouchableOpacity>
       </View>
-      <View
+      {/* <View
         style={{
+          margin: 16,
+          marginBottom: 12,
           paddingHorizontal: 17,
           paddingTop: 14,
           paddingBottom: 12,
@@ -525,9 +484,8 @@ const MeetingListScreen = ({groupInfo}) => {
         <View style={{flexDirection: 'row'}}>
           <View style={{flex: 1}}>
             <Heading3>우리 밥 한끼 어때?</Heading3>
-            <Body3>
-              [우리끼리] 정원의 가드너들을{`\n`}깨우고 약속을 잡아보세요.
-            </Body3>
+            <Body3>[{groupInfo.name}] 정원의 가드너들을</Body3>
+            <Body3>깨우고 약속을 잡아보세요.</Body3>
           </View>
           <View style={{marginRight: 25}}>
             <GardenerImage />
@@ -554,7 +512,8 @@ const MeetingListScreen = ({groupInfo}) => {
             콕 찔러보기
           </Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
+
       {/* <Calendar
         // markingType={'multi-period'}
         theme={calendarTheme}
@@ -563,88 +522,63 @@ const MeetingListScreen = ({groupInfo}) => {
       /> */}
 
       {today.dateString.length > 0 && (
-        <View style={{height: 130}}>
+        <View style={{height: 135, marginTop: 16}}>
           <CalendarProvider date={today.dateString}>
             <ExpandableCalendar
+              initialDate={today.dateString}
               initialPosition="closed"
               allowShadow={false}
-              calendarWidth={0.925 * width}
-              calendarStyle={{flex: 0}}
+              // calendarWidth={0.925 * width}
               theme={calendarTheme}
               onDayPress={day => handleSelectDay(day)}
               markedDates={markedDates}
-              pagingEnabled={true}
               futureScrollRange={0}
               pastScrollRange={0}
               disablePan
               hideKnob
             />
             {/* <WeekCalendar
-          theme={calendarTheme}
-          calendarWidth={0.925 * width}
-          allowShadow={false}
-          onDayPress={day => handleSelectDay(day)}
-          markedDates={{...selectedDate}}
-          pastScrollRange={0}
-          futureScrollRange={0}
-          scrollEnabled={false}
-        /> */}
+              theme={calendarTheme}
+              // calendarWidth={0.925 * width}
+              allowShadow={false}
+              onDayPress={day => handleSelectDay(day)}
+              markedDates={{...selectedDate}}
+              pastScrollRange={0}
+              futureScrollRange={0}
+              scrollEnabled={false}
+            /> */}
           </CalendarProvider>
         </View>
       )}
-      {meetingBlockVisible && (
+      {meetingBlockVisible && selectedMeetings.length > 0 ? (
+        <ScrollView
+          style={{
+            margin: 16,
+            marginBottom: 8,
+            borderRadius: 16,
+          }}>
+          {selectedMeetings.map((val, idx) => {
+            return (
+              <MeetingBlock
+                groupInfo={groupInfo}
+                meetingInfo={val}
+                navigation={navigation}
+                key={idx}
+              />
+            );
+          })}
+        </ScrollView>
+      ) : (
         <View
           style={{
-            backgroundColor: '#202225',
-            borderRadius: 12,
-            padding: 12,
+            width: '100%',
+            height: '20%',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}>
-          <View style={{flexDirection: 'row'}}>
-            <View style={{flex: 1}}>
-              <Tiny>이화여자대학교 가든</Tiny>
-              <Heading3 style={{marginTop: 4}}>가든 제목 1의 약속</Heading3>
-              <View style={{flexDirection: 'row', marginTop: 8}}>
-                <PersonIcon size={16} />
-                <Tiny> 익명 1, 익명 2, 익명 3</Tiny>
-              </View>
-              <View style={{flexDirection: 'row', marginTop: 4}}>
-                <ClockIcon size={16} />
-                <Tiny> 하루종일</Tiny>
-              </View>
-            </View>
-            <View style={{justifyContent: 'flex-end'}}>
-              <Image
-                source={NoFlower}
-                style={{width: 60, height: 60, marginRight: 30, bottom: 15}}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-          <TouchableOpacity style={{position: 'absolute', right: 16, top: 16}}>
-            <MenuDotsIcon size={24} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#111',
-              height: 40,
-              borderRadius: 8,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 8,
-            }}>
-            <Heading5>기록하기</Heading5>
-          </TouchableOpacity>
+          <Heading4 style={{color: '#ccc'}}>약속이 없는 상태입니다.</Heading4>
         </View>
       )}
-      {/* <Button
-        title="이미지 업로드"
-        onPress={() => handleChooseImage('capture', imageOptions)}
-      />
-      <Button
-        title="기록하기"
-        style={{marginTop: 12}}
-        onPress={handleNavigateToPost}
-      /> */}
 
       <Modal
         isVisible={modalVisible}
@@ -660,18 +594,18 @@ const MeetingListScreen = ({groupInfo}) => {
             bottom: 0,
             alignItems: 'center',
             width: '100%',
-            height: '95%',
-            backgroundColor: '#202020',
+            height: '93%',
+            backgroundColor: '#121415',
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           }}>
           <View
             style={{
-              backgroundColor: '#aaa',
-              width: 100,
-              height: 2,
-              borderRadius: 1,
-              marginTop: 15,
+              backgroundColor: '#414141',
+              width: 48,
+              height: 5,
+              borderRadius: 3,
+              marginTop: 8,
             }}
           />
           {/* {!groupSubmitted ? (
@@ -701,13 +635,14 @@ const MeetingListScreen = ({groupInfo}) => {
             </>
           ) : ( */}
           <>
-            <Text style={styles.modalTitle}>약속 생성</Text>
+            <Heading3 style={styles.modalTitle}>약속 생성</Heading3>
             <View>
               <TextInput
                 onChangeText={e => setMeetingTitle(e)}
                 value={meetingTitle}
                 placeholder={`${groupInfo.name}의 약속`}
                 placeholderTextColor={`rgba(255, 255, 255, 0.42)`}
+                onEndEditing={Keyboard.dismiss}
                 style={{
                   color: '#fff',
                   borderBottomColor: '#fff',
@@ -717,7 +652,7 @@ const MeetingListScreen = ({groupInfo}) => {
                   paddingVertical: 12,
                 }}
               />
-              <Text style={styles.durationTitle}>기간</Text>
+              <Heading4 style={styles.durationTitle}>기간</Heading4>
               <View>
                 <View
                   style={{
@@ -725,10 +660,11 @@ const MeetingListScreen = ({groupInfo}) => {
                     borderTopLeftRadius: 12,
                     borderTopRightRadius: 12,
                   }}>
-                  <Text style={styles.durationText}>하루 종일</Text>
+                  <Body3>하루 종일</Body3>
                   <Switch
                     onValueChange={handleAllDayLong}
                     value={durationAllDayLong}
+                    thumbColor={durationAllDayLong ? GREEN_COLOR : '#fff'}
                   />
                 </View>
                 <View style={styles.durationCell}>
@@ -738,23 +674,23 @@ const MeetingListScreen = ({groupInfo}) => {
                     <>
                       <TouchableOpacity
                         onPress={() => setStartDatePickerVisible(true)}>
-                        <Text style={styles.durationText}>
+                        <Body3>
                           {`${meetingStartDateTime.getFullYear()}년 ${
                             meetingStartDateTime.getMonth() + 1
                           }월 ${meetingStartDateTime.getDate()}일`}
-                        </Text>
+                        </Body3>
                       </TouchableOpacity>
                       <TouchableOpacity
                         disabled={durationAllDayLong}
                         onPress={() => setStartTimePickerVisible(true)}>
-                        <Text
+                        <Body3
                           style={
                             durationAllDayLong
                               ? {...styles.durationText, color: 'gray'}
                               : styles.durationText
                           }>
                           {`${meetingStartDateTime.getHours()}시 ${meetingStartDateTime.getMinutes()}분부터`}
-                        </Text>
+                        </Body3>
                       </TouchableOpacity>
                     </>
                   )}
@@ -796,7 +732,7 @@ const MeetingListScreen = ({groupInfo}) => {
                       <TouchableOpacity
                         disabled={durationAllDayLong}
                         onPress={() => setEndDatePickerVisible(true)}>
-                        <Text
+                        <Body3
                           style={
                             durationAllDayLong
                               ? {...styles.durationText, color: 'gray'}
@@ -805,19 +741,19 @@ const MeetingListScreen = ({groupInfo}) => {
                           {`${meetingEndDateTime.getFullYear()}년 ${
                             meetingEndDateTime.getMonth() + 1
                           }월 ${meetingEndDateTime.getDate()}일`}
-                        </Text>
+                        </Body3>
                       </TouchableOpacity>
                       <TouchableOpacity
                         disabled={durationAllDayLong}
                         onPress={() => setEndTimePickerVisible(true)}>
-                        <Text
+                        <Body3
                           style={
                             durationAllDayLong
                               ? {...styles.durationText, color: 'gray'}
                               : styles.durationText
                           }>
                           {`${meetingEndDateTime.getHours()}시 ${meetingEndDateTime.getMinutes()}분까지`}
-                        </Text>
+                        </Body3>
                       </TouchableOpacity>
                     </>
                   )}
@@ -847,7 +783,7 @@ const MeetingListScreen = ({groupInfo}) => {
                   )}
                 </View>
               </View>
-              <Text style={styles.durationTitle}>장소</Text>
+              <Heading4 style={styles.durationTitle}>장소</Heading4>
               <TouchableOpacity
                 style={styles.placeContainer}
                 onPress={handleAddPlace}>
@@ -860,7 +796,7 @@ const MeetingListScreen = ({groupInfo}) => {
                   이화여자대학교 조형예술대학 A동
                 </Body3>
               </TouchableOpacity>
-              <Text style={styles.durationTitle}>활동</Text>
+              <Heading4 style={styles.durationTitle}>활동</Heading4>
               <View
                 style={{
                   width: 0.9 * width,
@@ -890,22 +826,16 @@ const MeetingListScreen = ({groupInfo}) => {
 
 const styles = StyleSheet.create({
   modalTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 20,
   },
   durationTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
     marginTop: 20,
     marginBottom: 12,
   },
   durationCell: {
-    backgroundColor: '#3a3a3a',
+    backgroundColor: '#202225',
     height: 50,
     alignItems: 'center',
     padding: 12,
@@ -914,20 +844,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  durationText: {
-    color: '#fff',
-  },
   placeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3a3a3a',
+    backgroundColor: '#202225',
     padding: 12,
     borderRadius: 12,
   },
   activityCell: {
     flex: 1,
     height: 44,
-    backgroundColor: '#3a3a3a',
+    backgroundColor: '#202225',
     marginBottom: 12,
     marginRight: 16,
     justifyContent: 'center',

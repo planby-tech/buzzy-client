@@ -1,7 +1,7 @@
 import React from 'react';
-import {TouchableOpacity, Text} from 'react-native';
+import {TouchableOpacity} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {Heading4} from '../design-system/FontSystem';
+import {Heading5} from '../design-system/FontSystem';
 
 export default function Button({title, onPress, style, disabled = false}) {
   return (
@@ -18,10 +18,7 @@ export default function Button({title, onPress, style, disabled = false}) {
           borderRadius: 24,
           ...style,
         }}>
-        <Heading4
-          style={{fontSize: 18, color: '#000000', textTransform: 'uppercase'}}>
-          {title}
-        </Heading4>
+        <Heading5 style={{color: '#000000'}}>{title}</Heading5>
       </LinearGradient>
     </TouchableOpacity>
   );

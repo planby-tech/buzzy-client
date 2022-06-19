@@ -3,7 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import {Heading3} from '../design-system/FontSystem';
 import {ChevronLeftIcon} from '../design-system/IconSystem';
 
-const ScreenHeader = ({navigation, title}) => {
+const ScreenHeader = ({navigation, title, style}) => {
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -15,6 +15,7 @@ const ScreenHeader = ({navigation, title}) => {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        ...style,
       }}>
       <TouchableOpacity onPress={handleGoBack}>
         <ChevronLeftIcon />

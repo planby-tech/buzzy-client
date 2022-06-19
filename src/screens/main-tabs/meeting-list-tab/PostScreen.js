@@ -1,33 +1,249 @@
-import React, {useEffect} from 'react';
-import {View, Image} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Image,
+  FlatList,
+  Dimensions,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import {MainWrapper} from '../../../components/common/MainWrapper';
 import ScreenHeader from '../../../components/common/ScreenHeader';
-import {Body3, Heading3} from '../../../components/design-system/FontSystem';
+import {
+  Body3,
+  Heading2,
+  Heading3,
+  Heading5,
+} from '../../../components/design-system/FontSystem';
 
 import VisualDesign from '../../../assets/images/visual-design.png';
 import EwhaLogo from '../../../assets/images/ewha-logo.png';
+import Capture from '../../../assets/images/capture.png';
 import Button from '../../../components/common/SubmitButton';
 import {generateQuestion} from '../../../redux/slices/question';
 import {useDispatch} from 'react-redux';
 
-const PostScreen = ({navigation, route}) => {
-  const meetingId = 14;
-  const userId = 14;
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
-  const groupInfo = route.params.groupInfo;
+import {API_URL} from '../../../common/constant';
+import {createPost} from '../../../redux/slices/post';
+
+const PostScreen = ({navigation, route}) => {
+  const {width, height} = Dimensions.get('window');
+  const meetingId = route.params.meetingInfo.id;
+  const userId = route.params.userId;
+  const groupId = route.params.groupInfo.id;
 
   const dispatch = useDispatch();
+
+  const backgroundColors = [
+    '#A396FF',
+    '#D3F463',
+    '#406AFF',
+    '#FF5E3A',
+    '#FFD7B1',
+    '#47FE7A',
+    '#F7C1CF',
+    '#0ABAAB',
+    '#FDBC2A',
+    '#C6B8F5',
+  ];
+
+  const optionsId = [1, 2, 3, 4];
+
+  const [questionArray, setQuestionArray] = useState([]);
+  const [answerArray, setAnswerArray] = useState([]);
+  const [cardRef, setCardRef] = useState(null);
+
+  const [goNext, setGoNext] = useState(false);
+
   useEffect(() => {
     dispatch(generateQuestion({meetingId, userId}))
       .unwrap()
       .then(questionArray => {
-        console.log(questionArray);
+        questionArray.push({
+          content: '사진을 직접 촬영해서 기록해 주세요.',
+          options: {},
+        });
+        setQuestionArray(questionArray);
       });
   }, []);
-  return (
-    <MainWrapper edgeSpacing={32}>
-      <ScreenHeader title={`이화여자대학교의 기록`} navigation={navigation} />
-      <View style={{justifyContent: 'center', height: '90%'}}>
+
+  useEffect(() => {
+    console.log(answerArray);
+  }, [answerArray]);
+
+  const handleSelectOption = (index, val) => {
+    // index = 문제 번호 - 1, val = 옵션 번호
+    let cp = [...answerArray];
+    const answerObject = {
+      question: questionArray[index].content,
+      answer: questionArray[index].options[val],
+    };
+    const filteredAnswer = answerArray.filter(
+      qa => qa.question !== answerObject.question,
+    ); //질문이 같은 object를 걸러냄.
+    if (filteredAnswer.length < cp.length) {
+      // 질문이 같은 걸 걸러냈는데 원래보다 길이가 짧아짐, 즉 이미 답변이 된 질문에 대한 답을 다시 고른 경우
+      cp = [...filteredAnswer];
+      // cp를 걸러낸 배열로 다시 설정함으로써 해당 질문이 같은 object를 cp에서 제거함.
+    }
+    cp.push(answerObject);
+    setAnswerArray(cp);
+    if (index < questionArray.length - 1)
+      cardRef.scrollToIndex({
+        animated: true,
+        index: index + 1,
+        viewPosition: 0.5,
+      });
+  };
+
+  const handleInputText = (input, index) => {
+    console.log(input, index);
+    let cp = [...answerArray];
+    const answerObject = {
+      question: questionArray[index].content,
+      answer: input,
+    };
+    const filteredAnswer = cp.filter(
+      qa => qa.question !== questionArray[index].content,
+    );
+    if (filteredAnswer.length < cp.length) {
+      cp = [...filteredAnswer];
+    }
+    cp.push(answerObject);
+    setAnswerArray(cp);
+    if (index < questionArray.length - 1)
+      cardRef.scrollToIndex({
+        animated: true,
+        index: index + 1,
+        viewPosition: 0.5,
+      });
+  };
+
+  const handleCreatePost = () => {
+    const postObject = {
+      groupId: groupId,
+      meetingId: meetingId,
+      userId: userId,
+      questionAnswers: answerArray,
+    };
+    dispatch(createPost(postObject))
+      .unwrap()
+      .then(res => console.log(res))
+      .catch(err => console.log(err));
+  };
+
+  const onSwipeRight = index => {
+    setGoNext(true);
+    if (index > 0)
+      cardRef.scrollToIndex({
+        index: index - 1,
+        viewPosition: 0.5,
+      });
+  };
+
+  const onSwipeLeft = index => {
+    if (index < questionArray.length - 1) {
+      const filteredAnswer = answerArray.filter(
+        qa => qa.question === questionArray[index + 1].content,
+      );
+      // 질문이 같은 object를 탐색함.
+      if (filteredAnswer.length === 0) {
+        // 탐색 결과 없음, 즉 아직 답변이 안 된 질문
+        setGoNext(false);
+        // 다음으로 못 가게 막음.
+      }
+      if (goNext)
+        cardRef.scrollToIndex({
+          index: index + 1,
+          viewPosition: 0.5,
+        });
+    }
+  };
+
+  const [imageOptions, setImageOptions] = useState({
+    // saveToPhotos: true,
+    mediaType: 'photo',
+    includeBase64: false,
+    quality: 1,
+    selectionLimit: 0,
+  });
+
+  const handleChooseImage = (type, options) => {
+    if (type === 'capture') {
+      launchCamera(options, photos => {
+        const data = new FormData();
+
+        data.append('post', {
+          name: photos.assets[0].fileName,
+          type: photos.assets[0].type,
+          uri: photos.assets[0].uri,
+        });
+
+        console.log(JSON.stringify(data));
+
+        fetch(`${API_URL}/image`, {
+          method: 'post',
+          body: data,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+          .then(response => {
+            console.log('response', response.data);
+          })
+          .catch(error => {
+            console.log('error', error);
+          });
+      });
+    } else {
+      launchImageLibrary(options, photos => {
+        const data = new FormData();
+        if (photos.assets.length > 0) {
+          const imageArray = photos.assets?.map(val => {
+            return {
+              name: val.fileName,
+              type: val.type,
+              uri: val.uri,
+            };
+          });
+
+          console.log(JSON.stringify(imageArray));
+
+          data.append('post', imageArray);
+
+          console.log(JSON.stringify(data));
+
+          fetch(`${API_URL}/image`, {
+            method: 'post',
+            body: data,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          })
+            .then(response => {
+              console.log('response', response.data);
+            })
+            .catch(error => {
+              console.log('error', error);
+            });
+        }
+      });
+    }
+  };
+
+  const Greetings = () => {
+    return (
+      <View
+        style={{
+          justifyContent: 'center',
+          height: '80%',
+          width: width * 0.9,
+          marginLeft: 16,
+          marginRight: 8,
+        }}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Image
             source={VisualDesign}
@@ -54,17 +270,260 @@ const PostScreen = ({navigation, route}) => {
           <Heading3>설문으로 대체됩니다.</Heading3>
         </View>
         <View style={{marginTop: 16}}>
-          <Body3>본 설문은 Buzzy 앱 사용자 대상으로 간단한 의견을</Body3>
-          <Body3>알아보기 위해 작성되었습니다. 본 조사는 6월 32일부</Body3>
-          <Body3>터 26일까지, 6일동안 받을 예정입니다. 작성해 주신</Body3>
-          <Body3>내용의 일부는 방명록으로 사용되며 설문 내용을 토대</Body3>
-          <Body3>로 Buzzy의 사용성 향상에 사용될 예정입니다.</Body3>
-          <Body3>감사합니다.</Body3>
+          <Body3>본 설문은 Buzzy 앱 사용자 대상으로 간단한 의견을 알</Body3>
+          <Body3>아보기 위해 작성되었습니다. 6월 21일부터 26일까지, 6</Body3>
+          <Body3>일동안 실시됩니다. 설문 내용은 Buzzy의 사용성과 디</Body3>
+          <Body3>자인 향상을 위해 사용될 예정입니다. 감사합니다.</Body3>
         </View>
         <Button
           title="설문 시작하기"
-          style={{marginTop: '20%', width: '50%'}}
+          style={{marginTop: '50%', width: '50%', bottom: 0}}
+          onPress={() =>
+            cardRef.scrollToIndex({
+              animated: true,
+              index: 0,
+              viewPosition: 0.5,
+            })
+          }
         />
+      </View>
+    );
+  };
+
+  const questionCardLayout = ({item, index}) => {
+    return (
+      <GestureRecognizer
+        onSwipeRight={() => onSwipeRight(index)}
+        onSwipeLeft={() => onSwipeLeft(index)}
+        style={{
+          width: width * 0.85,
+          height: '62%',
+          backgroundColor: backgroundColors[index],
+          marginTop: '20%',
+          marginHorizontal: width * 0.023,
+          padding: 12,
+          paddingTop: 26,
+          borderRadius: 20,
+        }}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Body3 style={{color: '#000'}}>
+            {index + 1}/{questionArray.length}
+          </Body3>
+          {(index === 3 || index === 4) && (
+            <View style={{alignItems: 'center'}}>
+              <TouchableOpacity
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => {
+                  if (index < questionArray.length - 1)
+                    cardRef.scrollToIndex({
+                      animated: true,
+                      index: index + 1,
+                      viewPosition: 0.5,
+                    });
+                }}>
+                <Heading5 style={{color: '#000'}}>SKIP {'>'}</Heading5>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        <Heading2
+          style={{
+            color: '#000',
+            marginTop: 16,
+          }}>
+          {item.content}
+        </Heading2>
+        <View style={{alignItems: 'center'}}>
+          <View
+            style={{
+              width: '100%',
+              height: 1,
+              backgroundColor: `rgba(0,0,0,0.2)`,
+              marginTop: 20,
+            }}
+          />
+        </View>
+        <View style={{alignItems: 'center', marginTop: 16}}>
+          {Object.keys(item.options).length > 0 ? (
+            optionsId.map(val => {
+              const chosenQuestion = answerArray.filter(
+                qa => qa.question === item.content,
+              );
+              const selected =
+                chosenQuestion.length > 0 &&
+                item.options[val] === chosenQuestion[0].answer;
+
+              return (
+                <TouchableOpacity
+                  key={item.options[val]}
+                  style={{
+                    width: '100%',
+                    backgroundColor: selected ? '#fff' : '#111214',
+                    marginTop: '4%',
+                    justifyContent: 'center',
+                    borderRadius: 8,
+                    padding: 14,
+                  }}
+                  onPress={() => handleSelectOption(index, val)}>
+                  {selected ? (
+                    <Heading5 style={{color: '#111214'}}>
+                      {item.options[val]}
+                    </Heading5>
+                  ) : (
+                    <Body3>{item.options[val]}</Body3>
+                  )}
+                </TouchableOpacity>
+              );
+            })
+          ) : index !== questionArray.length - 1 ? (
+            <TextInput
+              placeholder={
+                index === 3
+                  ? 'Buzzy에 추가되었으면 하는 기능을 마음껏 적\n어주세요. Buzzy 제작자들은 귀 기울일 준비가\n되어 있어요!'
+                  : '저희는 응원을 먹고 자란답니다. ٩(•̤̀ᵕ•̤́๑)૭ Buzzy 제작자들에게 응원의 한마디를 적어주\n세요.'
+              }
+              placeholderTextColor="#474c52"
+              onEndEditing={val => handleInputText(val.nativeEvent.text, index)}
+              style={{
+                width: '100%',
+                height: '70%',
+                backgroundColor: `rgba(255,255,255,0.3)`,
+                marginTop: '4%',
+                borderRadius: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                color: '#000',
+                fontFamily: 'SUIT-Regular',
+              }}
+              multiline
+              textAlignVertical="top"
+              onSubmitEditing={() => {
+                if (index < questionArray.length - 1)
+                  cardRef.scrollToIndex({
+                    animated: true,
+                    index: index + 1,
+                    viewPosition: 0.5,
+                  });
+              }}
+            />
+          ) : (
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                height: '70%',
+                backgroundColor: '#000',
+                marginTop: '4%',
+                borderRadius: 8,
+                padding: 14,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              activeOpacity={0.6}
+              onPress={() => handleChooseImage('capture', imageOptions)}>
+              <Image
+                source={Capture}
+                style={{width: 48, height: 48}}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {index === 5 && (
+          <View style={{alignItems: 'center'}}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#3a3e44',
+                height: 48,
+                width: 140,
+                marginTop: 50,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 24,
+              }}
+              onPress={handleCreatePost}>
+              <Heading5>완료하기</Heading5>
+            </TouchableOpacity>
+          </View>
+        )}
+      </GestureRecognizer>
+    );
+  };
+
+  const SubmitCardLayout = () => {
+    return (
+      <GestureRecognizer
+        onSwipeRight={() => {
+          cardRef.scrollToIndex({
+            index: 8,
+            viewPosition: 0.5,
+          });
+        }}
+        style={{
+          // width: width * 0.85,
+          // height: '80%',
+          backgroundColor: '#c6b8f5',
+          // marginTop: '15%',
+          marginHorizontal: width * 0.023,
+          padding: 12,
+          paddingTop: 26,
+          borderRadius: 20,
+        }}>
+        <Body3 style={{color: '#000'}}>10/10</Body3>
+        <Heading2
+          style={{
+            color: '#000',
+            // width: 0.7 * width,
+            // height: 0.1 * height,
+            marginTop: 16,
+          }}>
+          사진을 직접 촬영해서 기록해 주세요.
+        </Heading2>
+        <View style={{alignItems: 'center'}}>
+          <TouchableOpacity
+            style={{
+              // width: '100%',
+              // height: '63%',
+              backgroundColor: '#000',
+              // marginTop: '4%',
+              borderRadius: 8,
+              padding: 14,
+            }}></TouchableOpacity>
+        </View>
+      </GestureRecognizer>
+    );
+  };
+
+  return (
+    <MainWrapper>
+      <ScreenHeader
+        title={`이화여자대학교의 기록`}
+        navigation={navigation}
+        style={{margin: 16, marginBottom: 0}}
+      />
+      <View
+        style={{
+          top: 40,
+          height: '100%',
+          alignItems: 'center',
+        }}>
+        {questionArray.length > 0 && (
+          <FlatList
+            ListHeaderComponent={Greetings}
+            data={questionArray}
+            ref={ref => {
+              setCardRef(ref);
+            }}
+            renderItem={questionCardLayout}
+            // ListFooterComponent={SubmitCardLayout}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            scrollEnabled={false}
+          />
+        )}
       </View>
     </MainWrapper>
   );

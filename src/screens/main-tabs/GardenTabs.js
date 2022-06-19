@@ -32,6 +32,7 @@ const GardenTabs = ({groupInfo}) => {
         borderRadius: 20,
         paddingHorizontal: 16,
       }}
+      screenOptions={{tabBarPressColor: 'transparent'}}
       activeColor="#86FD98"
       inactiveColor="#fff"
       labeled={false}>

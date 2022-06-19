@@ -118,10 +118,6 @@ const GardenListScreen = ({navigation}) => {
   };
 
   //handleNavigate
-  const handleNavigateToNFC = () => {
-    navigation.navigate('NFCTag');
-  };
-
   const handleNavigateToNews = () => {
     navigation.navigate('News');
   };

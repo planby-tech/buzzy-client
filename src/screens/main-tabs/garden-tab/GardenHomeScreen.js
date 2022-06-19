@@ -1,13 +1,24 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import {MainWrapper} from '../../../components/common/MainWrapper';
 import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+} from 'react-native';
+import {MainWrapper} from '../../../components/common/MainWrapper';
+import Modal from 'react-native-modal';
+import {
+  Body2,
   Body3,
+  Heading2,
   Heading4,
   Small,
 } from '../../../components/design-system/FontSystem';
 import {XIcon} from '../../../components/design-system/IconSystem';
+import NfcTag from '../../../assets/images/nfc-tag.png';
 import Profile6 from '../../../assets/images/Profile-6.png';
 import GardenBackground from '../../../assets/images/garden-background.png';
 import YellowMiddleFlower from '../../../assets/images/yellow-middle-flower.png';
@@ -18,6 +29,8 @@ import YellowShortFlower from '../../../assets/images/yellow-short-flower.png';
 import OrangeMiddleFlower from '../../../assets/images/orange-middle-flower.png';
 import BlueTallFlower from '../../../assets/images/blue-tall-flower.png';
 
+import SecondaryButton from '../../../components/common/SecondaryButton';
+
 import NfcManager, {NfcTech} from 'react-native-nfc-manager';
 import {tagging} from '../../../redux/slices/tag';
 
@@ -27,6 +40,8 @@ const GardenHomeScreen = ({groupInfo}) => {
   console.log('groupInfo in GardenHomeScreen: ' + JSON.stringify(groupInfo));
   const navigation = useNavigation();
 
+  const [modalVisible, setModalVisible] = useState(false);
+
   async function readNdef() {
     try {
       // register for the NFC tag with NDEF in it
@@ -34,24 +49,26 @@ const GardenHomeScreen = ({groupInfo}) => {
       // the resolved tag object will contain `ndefMessage` property
       const tag = await NfcManager.getTag();
       console.log('Tag found', tag.id);
-      if (landmark.tagUid === tag.id) {
-        dispatch(tagging({groupId: 1, tagUid: landmark.tagUid}))
-          .unwrap()
-          .then(res => console.log(res));
-      } else {
-        showMessage({
-          message: '선택하신 랜드마크와 맞는 NFC 태그가 아닙니다.',
-          type: 'warning',
-        });
-      }
+      dispatch(tagging({groupId: 1, tagUid: tag.id}))
+        .unwrap()
+        .then(res => console.log(res));
     } catch (ex) {
-      console.warn('Oops!', ex);
+      // console.warn('Oops!', ex);
     } finally {
       // stop the nfc scanning
       NfcManager.cancelTechnologyRequest();
     }
   }
 
+  const handleNFCTag = () => {
+    readNdef();
+    setModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    NfcManager.cancelTechnologyRequest();
+    setModalVisible(false);
+  };
   return (
     <MainWrapper>
       <View
@@ -77,22 +94,35 @@ const GardenHomeScreen = ({groupInfo}) => {
             <View style={{flexDirection: 'row'}}>
               {groupInfo.users.map((val, idx) => {
                 if (idx === groupInfo.users.length - 1) {
-                  return <Small key={idx}>{val.name}</Small>;
+                  return (
+                    <Small style={{color: '#9298A0'}} key={idx}>
+                      {val.name}
+                    </Small>
+                  );
                 }
-                return <Small key={idx}>{val.name}, </Small>;
+                return (
+                  <Small style={{color: '#9298A0'}} key={idx}>
+                    {val.name},{' '}
+                  </Small>
+                );
               })}
             </View>
           </View>
         </View>
         <TouchableOpacity
           style={{
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
             justifyContent: 'center',
             alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#fff',
+            borderRadius: 8,
           }}
-          onPress={() => navigation.goBack()}>
-          <XIcon color="white" size={24} />
+          onPress={handleNFCTag}>
+          <Text style={{fontFamily: 'SUIT-Bold', fontSize: 8, color: '#fff'}}>
+            NFC
+          </Text>
         </TouchableOpacity>
       </View>
       <View
@@ -101,56 +131,17 @@ const GardenHomeScreen = ({groupInfo}) => {
         }}>
         <Image
           source={GardenBackground}
-          style={{width: '100%', height: '100%'}}
+          style={{width: '100%', height: '100%', marginTop: 10}}
           resizeMode="cover"
         />
+        {/* <FlatList /> */}
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'baseline',
             position: 'absolute',
             bottom: 0,
-          }}>
-          <Image
-            source={YellowMiddleFlower}
-            style={{
-              width: 58,
-              height: 103,
-              zIndex: 2,
-            }}
-            resizeMode="contain"
-          />
-          <Image
-            source={PinkTallFlower}
-            style={{width: 58, height: 148, zIndex: 2}}
-            resizeMode="contain"
-          />
-          <Image
-            source={BlueShortFlower}
-            style={{width: 58, height: 72}}
-            resizeMode="contain"
-          />
-          <Image
-            source={GreenTallFlower}
-            style={{width: 58, height: 148}}
-            resizeMode="contain"
-          />
-          <Image
-            source={YellowShortFlower}
-            style={{width: 58, height: 72}}
-            resizeMode="contain"
-          />
-          <Image
-            source={OrangeMiddleFlower}
-            style={{width: 58, height: 103}}
-            resizeMode="contain"
-          />
-          <Image
-            source={BlueTallFlower}
-            style={{width: 58, height: 130}}
-            resizeMode="contain"
-          />
-        </View>
+          }}></View>
       </View>
       <View
         style={{
@@ -173,6 +164,47 @@ const GardenHomeScreen = ({groupInfo}) => {
           </TouchableOpacity>
         </View>
       </View>
+      <Modal
+        isVisible={modalVisible}
+        onModalHide={handleModalClose}
+        onBackdropPress={handleModalClose}
+        onSwipeComplete={handleModalClose}
+        onBackButtonPress={handleModalClose}
+        swipeDirection="down"
+        style={{margin: 0, padding: 0}}>
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            alignItems: 'center',
+            width: '100%',
+            height: '50%',
+            backgroundColor: '#18191B',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}>
+          <View
+            style={{
+              backgroundColor: '#979797',
+              width: 48,
+              height: 5,
+              borderRadius: 3,
+              marginTop: 8,
+            }}
+          />
+          <Heading2 style={{marginTop: 20}}>스캔 준비 완료</Heading2>
+          <Image
+            source={NfcTag}
+            style={{width: 120, height: 120, marginTop: 32}}
+          />
+          <Body2 style={{marginTop: 32}}>NFC 스티커를 조회 중입니다.</Body2>
+          <SecondaryButton
+            title="취소하기"
+            onPress={handleModalClose}
+            style={{borderWidth: 0, width: 300, marginTop: 32}}
+          />
+        </View>
+      </Modal>
     </MainWrapper>
   );
 };

@@ -95,6 +95,20 @@ const readMeetings = async (userId, groupId, month) => {
     });
 };
 
+const findItems = async (userId, groupId) => {
+  const header = await authHeader();
+  return axios
+    .get(API_URL + `/users/${userId}/groups/${groupId}/items`, {
+      headers: header,
+    })
+    .then(res => {
+      return res;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+};
+
 const groupService = {
   createGroup,
   joinGroup,
@@ -102,5 +116,6 @@ const groupService = {
   updateGroup,
   deleteGroup,
   readMeetings,
+  findItems,
 };
 export default groupService;
