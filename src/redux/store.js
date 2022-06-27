@@ -7,6 +7,8 @@ import meetingReducer from './slices/meeting';
 import tagReducer from './slices/tag';
 import questionReducer from './slices/question';
 import postReducer from './slices/post';
+import flowerReducer from './slices/flower';
+import imageReducer from './slices/image';
 const reducer = {
   auth: authReducer,
   group: groupReducer,
@@ -16,6 +18,8 @@ const reducer = {
   tag: tagReducer,
   question: questionReducer,
   post: postReducer,
+  flower: flowerReducer,
+  image: imageReducer,
 };
 const store = configureStore({
   reducer: reducer,

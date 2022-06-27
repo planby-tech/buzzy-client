@@ -6,6 +6,8 @@ import {ClockIcon, MenuDotsIcon, PersonIcon} from './design-system/IconSystem';
 import NoFlower from '../assets/images/no-flower.png';
 import {useSelector} from 'react-redux';
 
+import {imagePath} from './imagePath';
+
 export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
   const {user} = useSelector(state => state.auth);
   const userId = user.user?.id;
@@ -27,12 +29,13 @@ export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
           <Heading3 style={{marginTop: 4}}>{meetingInfo.title}</Heading3>
           <View style={{flexDirection: 'row', marginTop: 8}}>
             <PersonIcon size={16} />
-            <Tiny>
+            {/* <Tiny>
               {meetingInfo.users.map((val, idx) => {
                 if (meetingInfo.users.length === idx + 1) return ` ${val.name}`;
                 return ` ${val.name},`;
               })}
-            </Tiny>
+            </Tiny> */}
+            <Tiny>김혜령, 김채린, 류하경</Tiny>
           </View>
           <View style={{flexDirection: 'row', marginTop: 4}}>
             <ClockIcon size={16} />
@@ -51,14 +54,24 @@ export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
           </View>
         </View>
         <View style={{justifyContent: 'flex-end'}}>
-          <Image
-            source={NoFlower}
-            style={{width: 60, height: 60, marginRight: 30, bottom: 5}}
-            resizeMode="contain"
-          />
+          {meetingInfo.flowerId ? (
+            <Image
+              source={imagePath[meetingInfo.flowerId]}
+              style={{width: 52, height: 52, marginRight: 30, bottom: 5}}
+              resizeMode="contain"
+            />
+          ) : (
+            <Image
+              source={NoFlower}
+              style={{width: 60, height: 60, marginRight: 30, bottom: 5}}
+              resizeMode="contain"
+            />
+          )}
         </View>
       </View>
-      <TouchableOpacity style={{position: 'absolute', right: 16, top: 16}}>
+      <TouchableOpacity
+        style={{position: 'absolute', right: 16, top: 16}}
+        disabled>
         <MenuDotsIcon size={24} />
       </TouchableOpacity>
       {/* <Button
@@ -71,18 +84,29 @@ export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
           marginTop: 8,
         }}
       /> */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#111',
-          height: 40,
-          borderRadius: 8,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginTop: 8,
-        }}
-        onPress={handleNavigateToPost}>
-        <Heading5>기록하기</Heading5>
-      </TouchableOpacity>
+      {meetingInfo.flowerId ? (
+        <View
+          style={{
+            backgroundColor: '#111',
+            height: 40,
+            borderRadius: 8,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 8,
+          }}>
+          <Heading5>기록 완료!</Heading5>
+        </View>
+      ) : (
+        <Button
+          title="기록하기"
+          onPress={handleNavigateToPost}
+          style={{
+            height: 40,
+            borderRadius: 8,
+            marginTop: 8,
+          }}
+        />
+      )}
     </View>
   );
 };

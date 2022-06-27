@@ -14,12 +14,14 @@ import {
   Body3,
   Heading2,
   Heading3,
+  Heading4,
   Heading5,
 } from '../../../components/design-system/FontSystem';
 
 import VisualDesign from '../../../assets/images/visual-design.png';
 import EwhaLogo from '../../../assets/images/ewha-logo.png';
 import Capture from '../../../assets/images/capture.png';
+import NoFlower from '../../../assets/images/no-flower.png';
 import Button from '../../../components/common/SubmitButton';
 import {generateQuestion} from '../../../redux/slices/question';
 import {useDispatch} from 'react-redux';
@@ -28,11 +30,14 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
 import {API_URL} from '../../../common/constant';
 import {createPost} from '../../../redux/slices/post';
+import {uploadPostImage} from '../../../redux/slices/image';
+import {postFlowerImagePath} from '../garden-tab/imagePath';
 
 const PostScreen = ({navigation, route}) => {
   const {width, height} = Dimensions.get('window');
   const meetingId = route.params.meetingInfo.id;
   const userId = route.params.userId;
+  const groupInfo = route.params.groupInfo;
   const groupId = route.params.groupInfo.id;
 
   const dispatch = useDispatch();
@@ -41,10 +46,10 @@ const PostScreen = ({navigation, route}) => {
     '#A396FF',
     '#D3F463',
     '#406AFF',
-    '#FF5E3A',
-    '#FFD7B1',
-    '#47FE7A',
-    '#F7C1CF',
+    // '#FF5E3A',
+    // '#FFD7B1',
+    // '#47FE7A',
+    // '#F7C1CF',
     '#0ABAAB',
     '#FDBC2A',
     '#C6B8F5',
@@ -55,6 +60,11 @@ const PostScreen = ({navigation, route}) => {
   const [questionArray, setQuestionArray] = useState([]);
   const [answerArray, setAnswerArray] = useState([]);
   const [cardRef, setCardRef] = useState(null);
+  const [photoData, setPhotoData] = useState(new FormData());
+  const [photoUri, setPhotoUri] = useState(null);
+
+  const [isPostSubmitted, setIsPostSubmitted] = useState(false);
+  const [flowerId, setFlowerId] = useState(0);
 
   const [goNext, setGoNext] = useState(false);
 
@@ -66,6 +76,7 @@ const PostScreen = ({navigation, route}) => {
           content: '사진을 직접 촬영해서 기록해 주세요.',
           options: {},
         });
+        questionArray.push({});
         setQuestionArray(questionArray);
       });
   }, []);
@@ -123,6 +134,7 @@ const PostScreen = ({navigation, route}) => {
   };
 
   const handleCreatePost = () => {
+    setIsPostSubmitted(true);
     const postObject = {
       groupId: groupId,
       meetingId: meetingId,
@@ -131,8 +143,27 @@ const PostScreen = ({navigation, route}) => {
     };
     dispatch(createPost(postObject))
       .unwrap()
-      .then(res => console.log(res))
-      .catch(err => console.log(err));
+      .then(res => {
+        console.log(res);
+        setFlowerId(res.meeting.flowerId);
+        setIsPostSubmitted(false);
+        console.log(JSON.stringify(photoData));
+        dispatch(uploadPostImage({postId: res.post.id, photoData: photoData}))
+          .unwrap()
+          .then(res => {
+            console.log(res);
+          })
+          .catch(err => console.log(err));
+        setPhotoData(null);
+        cardRef.scrollToIndex({
+          index: questionArray.length - 1,
+          viewPosition: 0.5,
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        setIsPostSubmitted(false);
+      });
   };
 
   const onSwipeRight = index => {
@@ -175,63 +206,63 @@ const PostScreen = ({navigation, route}) => {
     if (type === 'capture') {
       launchCamera(options, photos => {
         const data = new FormData();
-
         data.append('post', {
           name: photos.assets[0].fileName,
           type: photos.assets[0].type,
           uri: photos.assets[0].uri,
         });
+        setPhotoUri(photos.assets[0].uri);
+        setPhotoData(data);
 
-        console.log(JSON.stringify(data));
-
-        fetch(`${API_URL}/image`, {
-          method: 'post',
-          body: data,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        })
-          .then(response => {
-            console.log('response', response.data);
-          })
-          .catch(error => {
-            console.log('error', error);
-          });
-      });
-    } else {
-      launchImageLibrary(options, photos => {
-        const data = new FormData();
-        if (photos.assets.length > 0) {
-          const imageArray = photos.assets?.map(val => {
-            return {
-              name: val.fileName,
-              type: val.type,
-              uri: val.uri,
-            };
-          });
-
-          console.log(JSON.stringify(imageArray));
-
-          data.append('post', imageArray);
-
-          console.log(JSON.stringify(data));
-
-          fetch(`${API_URL}/image`, {
-            method: 'post',
-            body: data,
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          })
-            .then(response => {
-              console.log('response', response.data);
-            })
-            .catch(error => {
-              console.log('error', error);
-            });
-        }
+        // fetch(`${API_URL}/posts/1/images`, {
+        //   method: 'post',
+        //   body: photoData,
+        //   headers: {
+        //     'Content-Type': 'multipart/form-data',
+        //   },
+        // })
+        //   .then(response => {
+        //     console.log('response', response.data);
+        //   })
+        //   .catch(error => {
+        //     console.log('error', error);
+        //   });
       });
     }
+    // else {
+    //   launchImageLibrary(options, photos => {
+    //     const data = new FormData();
+    //     if (photos.assets.length > 0) {
+    //       const imageArray = photos.assets?.map(val => {
+    //         return {
+    //           name: val.fileName,
+    //           type: val.type,
+    //           uri: val.uri,
+    //         };
+    //       });
+
+    //       console.log(JSON.stringify(imageArray));
+
+    //       data.append('post', imageArray);
+
+    //       console.log(JSON.stringify(data));
+
+    //       fetch(`${API_URL}/posts/${postId}/image`, {
+    //         method: 'post',
+    //         body: data,
+    //         headers: {
+    //           'Content-Type': 'multipart/form-data',
+    //         },
+    //       })
+    //         .then(response => {
+    //           console.log('response', response.data);
+    //         })
+    //         .catch(error => {
+    //           console.log('error', error);
+    //         });
+    //     }
+    //   });
+    // }
   };
 
   const Greetings = () => {
@@ -291,6 +322,55 @@ const PostScreen = ({navigation, route}) => {
   };
 
   const questionCardLayout = ({item, index}) => {
+    if (index === questionArray.length - 1) {
+      return (
+        <View
+          style={{
+            width: width * 0.85,
+            height: '62%',
+            backgroundColor: '#202225',
+            marginTop: '20%',
+            marginLeft: width * 0.023,
+            marginRight: width * 0.046,
+            padding: 12,
+            borderRadius: 20,
+            alignItems: 'center',
+          }}>
+          <Heading4 style={{marginTop: 74}}>
+            모든 기록을 완료하셨습니다!
+          </Heading4>
+          <Heading4>소중한 의견 주셔서 감사합니다.</Heading4>
+          <Heading4> </Heading4>
+          <Heading4>어떤 꽃을 획득했는지</Heading4>
+          <Heading4>[{groupInfo.name}] 가든으로</Heading4>
+          <Heading4>이동해서 알아볼까요?</Heading4>
+          <Image
+            source={postFlowerImagePath[flowerId]}
+            style={{width: 70, height: 70, marginTop: '20%'}}
+            resizeMode="contain"
+          />
+          <Button
+            title="정원으로 이동"
+            style={{
+              width: width * 0.75,
+              height: '25%',
+              borderRadius: 8,
+              marginTop: '20%',
+            }}
+            onPress={() => {
+              navigation.reset({
+                routes: [
+                  {
+                    name: 'GardenTabs',
+                    params: groupInfo,
+                  },
+                ],
+              });
+            }}
+          />
+        </View>
+      );
+    }
     return (
       <GestureRecognizer
         onSwipeRight={() => onSwipeRight(index)}
@@ -307,7 +387,7 @@ const PostScreen = ({navigation, route}) => {
         }}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
           <Body3 style={{color: '#000'}}>
-            {index + 1}/{questionArray.length}
+            {index + 1}/{questionArray.length - 1}
           </Body3>
           {(index === 3 || index === 4) && (
             <View style={{alignItems: 'center'}}>
@@ -378,7 +458,7 @@ const PostScreen = ({navigation, route}) => {
                 </TouchableOpacity>
               );
             })
-          ) : index !== questionArray.length - 1 ? (
+          ) : index !== questionArray.length - 2 ? (
             <TextInput
               placeholder={
                 index === 3
@@ -399,6 +479,7 @@ const PostScreen = ({navigation, route}) => {
                 fontFamily: 'SUIT-Regular',
               }}
               multiline
+              blurOnSubmit
               textAlignVertical="top"
               onSubmitEditing={() => {
                 if (index < questionArray.length - 1)
@@ -409,12 +490,23 @@ const PostScreen = ({navigation, route}) => {
                   });
               }}
             />
+          ) : photoUri ? (
+            <Image
+              source={{uri: photoUri}}
+              style={{
+                width: '100%',
+                height: '70%',
+                marginTop: '4%',
+                borderRadius: 8,
+              }}
+              resizeMode="cover"
+            />
           ) : (
             <TouchableOpacity
               style={{
                 width: '100%',
                 height: '70%',
-                backgroundColor: '#000',
+                backgroundColor: '#18191b',
                 marginTop: '4%',
                 borderRadius: 8,
                 padding: 14,
@@ -444,6 +536,7 @@ const PostScreen = ({navigation, route}) => {
                 justifyContent: 'center',
                 borderRadius: 24,
               }}
+              disabled={isPostSubmitted}
               onPress={handleCreatePost}>
               <Heading5>완료하기</Heading5>
             </TouchableOpacity>
@@ -453,49 +546,49 @@ const PostScreen = ({navigation, route}) => {
     );
   };
 
-  const SubmitCardLayout = () => {
-    return (
-      <GestureRecognizer
-        onSwipeRight={() => {
-          cardRef.scrollToIndex({
-            index: 8,
-            viewPosition: 0.5,
-          });
-        }}
-        style={{
-          // width: width * 0.85,
-          // height: '80%',
-          backgroundColor: '#c6b8f5',
-          // marginTop: '15%',
-          marginHorizontal: width * 0.023,
-          padding: 12,
-          paddingTop: 26,
-          borderRadius: 20,
-        }}>
-        <Body3 style={{color: '#000'}}>10/10</Body3>
-        <Heading2
-          style={{
-            color: '#000',
-            // width: 0.7 * width,
-            // height: 0.1 * height,
-            marginTop: 16,
-          }}>
-          사진을 직접 촬영해서 기록해 주세요.
-        </Heading2>
-        <View style={{alignItems: 'center'}}>
-          <TouchableOpacity
-            style={{
-              // width: '100%',
-              // height: '63%',
-              backgroundColor: '#000',
-              // marginTop: '4%',
-              borderRadius: 8,
-              padding: 14,
-            }}></TouchableOpacity>
-        </View>
-      </GestureRecognizer>
-    );
-  };
+  // const SubmitCardLayout = () => {
+  //   return (
+  //     <GestureRecognizer
+  //       onSwipeRight={() => {
+  //         cardRef.scrollToIndex({
+  //           index: 8,
+  //           viewPosition: 0.5,
+  //         });
+  //       }}
+  //       style={{
+  //         // width: width * 0.85,
+  //         // height: '80%',
+  //         backgroundColor: '#c6b8f5',
+  //         // marginTop: '15%',
+  //         marginHorizontal: width * 0.023,
+  //         padding: 12,
+  //         paddingTop: 26,
+  //         borderRadius: 20,
+  //       }}>
+  //       <Body3 style={{color: '#000'}}>10/10</Body3>
+  //       <Heading2
+  //         style={{
+  //           color: '#000',
+  //           // width: 0.7 * width,
+  //           // height: 0.1 * height,
+  //           marginTop: 16,
+  //         }}>
+  //         사진을 직접 촬영해서 기록해 주세요.
+  //       </Heading2>
+  //       <View style={{alignItems: 'center'}}>
+  //         <TouchableOpacity
+  //           style={{
+  //             // width: '100%',
+  //             // height: '63%',
+  //             backgroundColor: '#000',
+  //             // marginTop: '4%',
+  //             borderRadius: 8,
+  //             padding: 14,
+  //           }}></TouchableOpacity>
+  //       </View>
+  //     </GestureRecognizer>
+  //   );
+  // };
 
   return (
     <MainWrapper>
@@ -518,7 +611,6 @@ const PostScreen = ({navigation, route}) => {
               setCardRef(ref);
             }}
             renderItem={questionCardLayout}
-            // ListFooterComponent={SubmitCardLayout}
             keyExtractor={(item, index) => index.toString()}
             horizontal
             scrollEnabled={false}
