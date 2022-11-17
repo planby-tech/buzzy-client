@@ -26,6 +26,7 @@ import {
   NEUTRAL_850,
   NEUTRAL_900,
   NEUTRAL_950,
+  NEUTRAL_WHITE,
   PRIMARY_500,
 } from './design-system/ColorSystem';
 import LinearGradient from 'react-native-linear-gradient';
@@ -33,7 +34,14 @@ import {gardenFlowerImagePath} from '../screens/main-tabs/garden-tab/imagePath';
 import {useDispatch} from 'react-redux';
 import {findPosts} from '../redux/slices/flower';
 
-const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
+const FlowerModal = ({
+  groupId,
+  flowerId,
+  isVisible,
+  onClose,
+  modalStyle,
+  navigation,
+}) => {
   const [postsInfo, setPostsInfo] = useState(null);
   const sizeIndex = flowerId % 3;
 
@@ -69,7 +77,6 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
 
   useEffect(() => {
     if (postsInfo) {
-      console.log(JSON.stringify(postsInfo));
       setMeetingInfo([
         {head: '약속 제목', tail: postsInfo.meeting.title},
         {
@@ -90,6 +97,10 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
   const handleModalClose = () => {
     setPostsInfo(null);
     setMeetingInfo(null);
+  };
+
+  const handleNavigateToLargeImage = location => {
+    navigation.navigate('LargeImage', {path: location});
   };
 
   const questionCardLayout = ({item, index}) => {
@@ -138,14 +149,14 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
                   borderRadius: 6,
                   marginTop: val === 1 ? 16 : 8,
                   padding: 10,
-                  backgroundColor: selected ? '#fff' : '#111214',
+                  backgroundColor: selected ? NEUTRAL_WHITE : NEUTRAL_950,
                   justifyContent: 'center',
                 }}>
                 <Text
                   style={{
                     fontFamily: 'SUIT-Regular',
                     fontSize: 9,
-                    color: selected ? '#111214' : '#fff',
+                    color: selected ? NEUTRAL_950 : NEUTRAL_WHITE,
                   }}>
                   {item.options[val]}
                 </Text>
@@ -224,7 +235,7 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
             <ChevronLeftIcon />
           </TouchableOpacity>
           <Heading3>기록보기</Heading3>
-          <TouchableOpacity disabled>
+          <TouchableOpacity>
             <Heading5 style={{color: PRIMARY_500}}>편집</Heading5>
           </TouchableOpacity>
         </View>
@@ -232,7 +243,7 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
           <LinearGradient
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}
-            colors={['rgba(255,255,255,0)', '#010101']}
+            colors={[`rgba(0,0,0,0)`, '#010101']}
             style={{
               paddingTop: 16,
               width: '100%',
@@ -331,7 +342,7 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
                   justifyContent: 'space-between',
                 }}>
                 <Heading4>기록</Heading4>
-                <TouchableOpacity disabled>
+                <TouchableOpacity hitSlop={40}>
                   <Body3 style={{color: PRIMARY_500}}>모두 보기</Body3>
                 </TouchableOpacity>
               </View>
@@ -348,31 +359,35 @@ const FlowerModal = ({groupId, flowerId, isVisible, onClose, modalStyle}) => {
                   justifyContent: 'space-between',
                 }}>
                 <Heading4>사진 기록</Heading4>
-                <TouchableOpacity disabled>
+                <TouchableOpacity hitSlop={40}>
                   <Body3 style={{color: PRIMARY_500}}>모두 보기</Body3>
                 </TouchableOpacity>
               </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  width: width * 0.25,
-                  height: width * 0.25,
-                  marginBottom: 30,
-                  marginTop: 12,
-                }}>
+              <View style={{flexDirection: 'row'}}>
                 {postsInfo.meeting.images.map((image, idx) => {
-                  console.log(image.location);
+                  console.log(1, image.location);
                   return (
-                    <Image
-                      key={idx}
-                      source={{uri: image.location}}
+                    <TouchableOpacity
                       style={{
-                        flex: 1,
-                        marginRight: 12,
-                        marginBottom: 12,
-                        borderRadius: 8,
+                        width: width * 0.25,
+                        height: width * 0.25,
+                        marginBottom: 30,
+                        marginTop: 12,
                       }}
-                    />
+                      key={idx}
+                      onPress={() =>
+                        handleNavigateToLargeImage(image.location)
+                      }>
+                      <Image
+                        source={{uri: image.location}}
+                        style={{
+                          flex: 1,
+                          marginRight: 12,
+                          marginBottom: 12,
+                          borderRadius: 8,
+                        }}
+                      />
+                    </TouchableOpacity>
                   );
                 })}
               </View>

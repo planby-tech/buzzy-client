@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {MainWrapper} from '../components/common/MainWrapper';
 import SplashScreen from '../screens/auth/SplashScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
@@ -12,8 +13,8 @@ import GardenListColumnScreen from '../screens/main-tabs/garden-tab/GardenListCo
 import Home from '../components/Home';
 import Profile from '../components/Profile';
 import AddGroupScreen from '../screens/main-tabs/garden-tab/AddGroupScreen';
-import {MainWrapper} from '../components/common/MainWrapper';
 import GardenHomeScreen from '../screens/main-tabs/garden-tab/GardenHomeScreen';
+import LargeImageScreen from '../screens/main-tabs/garden-tab/LargeImageScreen';
 import PostScreen from '../screens/main-tabs/meeting-list-tab/PostScreen';
 import LandingScreen from '../screens/landing/LandingScreen';
 import CreateGroupScreen from '../screens/main-tabs/garden-tab/CreateGroupScreen';
@@ -54,6 +55,7 @@ const AppNavigator = () => {
         />
         <MainStack.Screen name="News" component={NewsScreen} />
         <MainStack.Screen name="GardenHome" component={GardenHomeScreen} />
+        <MainStack.Screen name="LargeImage" component={LargeImageScreen} />
         <MainStack.Screen name="Post" component={PostScreen} />
         <MainStack.Screen name="NFCTag" component={NFCTagScreen} />
         <MainStack.Screen name="AddGroup" component={AddGroupScreen} />

@@ -1,17 +1,3 @@
-// import React from 'react';
-// import {Text, View} from 'react-native';
-// import {MainWrapper} from '../../../components/common/MainWrapper';
-
-// const MyScreen = () => {
-//   return (
-//     <MainWrapper edgeSpacing={16}>
-//       <Text style={{color: '#fff', fontSize: 40}}>My</Text>
-//     </MainWrapper>
-//   );
-// };
-
-// export default MyScreen;
-
 import React from 'react';
 import {View, Image} from 'react-native';
 
@@ -19,7 +5,7 @@ import NotPrepared from '../../../assets/images/not-prepared.png';
 import {MainWrapper} from '../../../components/common/MainWrapper';
 import {Body3, Heading3} from '../../../components/design-system/FontSystem';
 
-const MyScreen = () => {
+const ChatScreen = () => {
   return (
     <MainWrapper edgeSpacing={16}>
       <View style={{flex: 1, justifyContent: 'center'}}>
@@ -52,4 +38,4 @@ const MyScreen = () => {
   );
 };
 
-export default MyScreen;
+export default ChatScreen;

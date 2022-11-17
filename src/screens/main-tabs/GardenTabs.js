@@ -1,6 +1,6 @@
 // import MeetingListScreen from './meeting-list-tab/MeetingListScreen';
 import MapScreen from './map-tab/MapScreen';
-import MyScreen from './my-tab/MyScreen';
+import ChatScreen from './my-tab/ChatScreen';
 
 import React from 'react';
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
@@ -22,11 +22,10 @@ const GardenTabs = ({groupInfo}) => {
     <GardenTab.Navigator
       initialRouteName="GardenHome"
       barStyle={{
-        backgroundColor: '#202225',
+        backgroundColor: '#141414',
         height: 70,
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
         marginHorizontal: 16,
         marginBottom: 16,
         borderRadius: 20,
@@ -70,7 +69,7 @@ const GardenTabs = ({groupInfo}) => {
       />
       <GardenTab.Screen
         name="My"
-        component={MyScreen}
+        component={ChatScreen}
         options={{
           tabBarLabel: '마이',
           tabBarIcon: ({color}) => (

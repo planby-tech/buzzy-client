@@ -23,19 +23,18 @@ export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
         borderRadius: 12,
         padding: 12,
       }}>
-      <View style={{flexDirection: 'row'}}>
+      <View style={{flexDirection: 'row', marginBottom: 8}}>
         <View style={{flex: 1}}>
           <Tiny>{groupInfo.name}</Tiny>
           <Heading3 style={{marginTop: 4}}>{meetingInfo.title}</Heading3>
           <View style={{flexDirection: 'row', marginTop: 8}}>
             <PersonIcon size={16} />
-            {/* <Tiny>
+            <Tiny>
               {meetingInfo.users.map((val, idx) => {
                 if (meetingInfo.users.length === idx + 1) return ` ${val.name}`;
                 return ` ${val.name},`;
               })}
-            </Tiny> */}
-            <Tiny>김혜령, 김채린, 류하경</Tiny>
+            </Tiny>
           </View>
           <View style={{flexDirection: 'row', marginTop: 4}}>
             <ClockIcon size={16} />
@@ -70,20 +69,16 @@ export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
         </View>
       </View>
       <TouchableOpacity
-        style={{position: 'absolute', right: 16, top: 16}}
-        disabled>
-        <MenuDotsIcon size={24} />
-      </TouchableOpacity>
-      {/* <Button
-        title="기록하기"
         style={{
-          height: 40,
-          borderRadius: 8,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginTop: 8,
-        }}
-      /> */}
+          position: 'absolute',
+          right: 4,
+          top: 16,
+          width: 50,
+          height: 50,
+          alignItems: 'flex-end',
+        }}>
+        <MenuDotsIcon size={32} />
+      </TouchableOpacity>
       {meetingInfo.flowerId ? (
         <View
           style={{
@@ -103,7 +98,6 @@ export default MeetingBlock = ({groupInfo, meetingInfo, navigation}) => {
           style={{
             height: 40,
             borderRadius: 8,
-            marginTop: 8,
           }}
         />
       )}

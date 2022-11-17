@@ -12,6 +12,7 @@ import {
   Platform,
   Image,
   Keyboard,
+  TouchableHighlight,
 } from 'react-native';
 import {
   ExpandableCalendar,
@@ -41,13 +42,16 @@ import Profile1 from '../../../assets/images/Profile-1.png';
 
 import MeetingBlock from '../../../components/MeetingBlock';
 import {PlusIcon} from '../../../components/design-system/IconSystem';
+import {
+  NEUTRAL_WHITE,
+  PRIMARY_500,
+} from '../../../components/design-system/ColorSystem';
 
 const MeetingListScreen = ({groupInfo}) => {
   const navigation = useNavigation();
   const {user} = useSelector(state => state.auth);
   const userId = user.user?.id;
-  // const userId =
-  const {groupArray} = useSelector(state => state.user);
+  // const {groupArray} = useSelector(state => state.user);
 
   const dateToStr = date => {
     const year = date.getFullYear().toString();
@@ -133,13 +137,13 @@ const MeetingListScreen = ({groupInfo}) => {
   const calendarTheme = {
     backgroundColor: '#000',
     calendarBackground: '#000',
-    monthTextColor: '#fff',
+    monthTextColor: NEUTRAL_WHITE,
     arrowColor: GREEN_COLOR,
-    dayTextColor: '#fff',
+    dayTextColor: NEUTRAL_WHITE,
     textDisabledColor: '#2b2b2b',
     todayTextColor: GREEN_COLOR,
     selectedDayBackgroundColor: '#202225',
-    dotColor: '#fff',
+    dotColor: NEUTRAL_WHITE,
     selectedDotColor: GREEN_COLOR,
     textDayFontFamily: 'SUIT-Regular',
     textMonthFontFamily: 'SUIT-Regular',
@@ -180,7 +184,7 @@ const MeetingListScreen = ({groupInfo}) => {
 
   const isFocused = useIsFocused();
   useEffect(() => {
-    if (isFocused) {
+    if (isFocused && !modalVisible) {
       setSourceDate(new Date());
 
       const groupId = groupInfo.id;
@@ -188,7 +192,7 @@ const MeetingListScreen = ({groupInfo}) => {
       const loadedUserList = groupInfo.users.map(val => val.UserGroups.userId);
       setUserList(loadedUserList);
 
-      dispatch(readMeetings({userId, groupId, month: '06'}))
+      dispatch(readMeetings({userId, groupId, month: '07'}))
         .unwrap()
         .then(meetingArray => {
           setMeetingArray(meetingArray);
@@ -230,6 +234,10 @@ const MeetingListScreen = ({groupInfo}) => {
   useEffect(() => {
     setMarkedDates({...selectedDate, ...meetingDates});
   }, [meetingDates]);
+
+  useEffect(() => {
+    console.log(meetingTitle);
+  }, [meetingTitle]);
 
   useEffect(() => {
     const meetingYear = meetingStartDateTime.getFullYear();
@@ -305,10 +313,6 @@ const MeetingListScreen = ({groupInfo}) => {
     setDurationAllDayLong(prev => !prev);
   };
 
-  // const handleNavigateToNFC = () => {
-  //   navigation.navigate('NFCTag');
-  // };
-
   const handleStartPicker = (event, selectedStartDate) => {
     const currentDate = selectedStartDate || meetingStartDateTime;
     if (Platform.OS === 'android') {
@@ -383,7 +387,7 @@ const MeetingListScreen = ({groupInfo}) => {
   //     // setSelectedGroup(item);
   //     setIsGroupSelected(true);
   //   };
-  //   const checkColor = item.id === groupInfo.id ? GREEN_COLOR : '#fff';
+  //   const checkColor = item.id === groupInfo.id ? GREEN_COLOR : NEUTRAL_WHITE;
 
   //   return (
   //     <TouchableOpacity
@@ -401,7 +405,7 @@ const MeetingListScreen = ({groupInfo}) => {
   //       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
   //         <Text
   //           style={{
-  //             color: '#fff',
+  //             color: NEUTRAL_WHITE,
   //             fontSize: 16,
   //             fontFamily: 'Pretendard-SemiBold',
   //             lineHeight: 20,
@@ -417,7 +421,7 @@ const MeetingListScreen = ({groupInfo}) => {
   //           />
   //         </View>
   //       </View>
-  //       <Text style={{color: '#fff', fontSize: 12}}>{item.users[0].name}</Text>
+  //       <Text style={{color: NEUTRAL_WHITE, fontSize: 12}}>{item.users[0].name}</Text>
   //     </TouchableOpacity>
   //   );
   // };
@@ -468,7 +472,7 @@ const MeetingListScreen = ({groupInfo}) => {
           resizeMode="contain"
         />
         <Heading3 style={{flex: 1}}>약속리스트</Heading3>
-        <TouchableOpacity
+        <TouchableHighlight
           onPress={() => setModalVisible(true)}
           hitSlop={40}
           style={{
@@ -478,7 +482,7 @@ const MeetingListScreen = ({groupInfo}) => {
             alignItems: 'center',
           }}>
           <PlusIcon size={20} />
-        </TouchableOpacity>
+        </TouchableHighlight>
       </View>
       {/* <View
         style={{
@@ -530,35 +534,23 @@ const MeetingListScreen = ({groupInfo}) => {
         markedDates={markedDates}
       /> */}
 
-      {selectedDay.dateString.length > 0 && isFocused && !modalVisible && (
+      {selectedDay.dateString.length > 0 && isFocused && (
         <View style={{height: 135, marginTop: 16}}>
           <CalendarProvider date={selectedDay.dateString}>
             <ExpandableCalendar
               onLayout={() =>
                 handleSelectDay({dateString: selectedDay.dateString})
               }
-              initialDate={selectedDay.dateString}
               initialPosition="closed"
               allowShadow={false}
               // calendarWidth={0.925 * width}
               theme={calendarTheme}
               onDayPress={day => handleSelectDay(day)}
               markedDates={markedDates}
-              futureScrollRange={0}
-              pastScrollRange={0}
               disablePan
               hideKnob
+              initialNumToRender={20}
             />
-            {/* <WeekCalendar
-              theme={calendarTheme}
-              // calendarWidth={0.925 * width}
-              allowShadow={false}
-              onDayPress={day => handleSelectDay(day)}
-              markedDates={{...selectedDate}}
-              pastScrollRange={0}
-              futureScrollRange={0}
-              scrollEnabled={false}
-            /> */}
           </CalendarProvider>
         </View>
       )}
@@ -571,7 +563,6 @@ const MeetingListScreen = ({groupInfo}) => {
             height: height * 0.6,
           }}>
           <FlatList
-            // inverted
             data={selectedMeetings}
             renderItem={({item, index}) => {
               return (
@@ -655,13 +646,12 @@ const MeetingListScreen = ({groupInfo}) => {
             <View>
               <TextInput
                 onChangeText={e => setMeetingTitle(e)}
-                value={meetingTitle}
                 placeholder={`약속 제목을 입력해주세요.`}
                 placeholderTextColor={`rgba(255, 255, 255, 0.42)`}
                 style={{
                   fontFamily: 'SUIT-SemiBold',
-                  color: '#fff',
-                  borderBottomColor: '#fff',
+                  color: NEUTRAL_WHITE,
+                  borderBottomColor: NEUTRAL_WHITE,
                   borderBottomWidth: 1,
                   width: width * 0.9,
                   fontSize: 20,
@@ -680,7 +670,10 @@ const MeetingListScreen = ({groupInfo}) => {
                   <Switch
                     onValueChange={handleAllDayLong}
                     value={durationAllDayLong}
-                    thumbColor={durationAllDayLong ? GREEN_COLOR : '#fff'}
+                    thumbColor={
+                      durationAllDayLong ? PRIMARY_500 : NEUTRAL_WHITE
+                    }
+                    hitSlop={20}
                   />
                 </View>
                 <View style={styles.durationCell}>
@@ -689,7 +682,8 @@ const MeetingListScreen = ({groupInfo}) => {
                   ) : (
                     <>
                       <TouchableOpacity
-                        onPress={() => setStartDatePickerVisible(true)}>
+                        onPress={() => setStartDatePickerVisible(true)}
+                        hitSlop={50}>
                         <Body3>
                           {`${meetingStartDateTime.getFullYear()}년 ${
                             meetingStartDateTime.getMonth() + 1

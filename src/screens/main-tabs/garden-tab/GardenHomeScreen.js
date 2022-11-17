@@ -44,9 +44,12 @@ import {findItems} from '../../../redux/slices/group';
 import {findPosts} from '../../../redux/slices/flower';
 import FlowerModal from '../../../components/FlowerModal';
 import {
+  NEUTRAL_400,
   NEUTRAL_700,
   NEUTRAL_850,
+  NEUTRAL_900,
   NEUTRAL_950,
+  NEUTRAL_WHITE,
   PRIMARY_500,
 } from '../../../components/design-system/ColorSystem';
 import Button from '../../../components/common/SubmitButton';
@@ -55,26 +58,10 @@ import {showMessage} from 'react-native-flash-message';
 NfcManager.start();
 
 const GardenHomeScreen = ({groupInfo}) => {
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => {
-        showMessage({
-          message: '정원에 머물러 주세요!',
-          type: 'success',
-        });
-        return true;
-      };
-
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () =>
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, []),
-  );
   const {user} = useSelector(state => state.auth);
   const userId = user.user.id;
   const groupId = groupInfo.id;
-  console.log('groupInfo in GardenHomeScreen: ' + JSON.stringify(groupInfo));
+  // console.log('groupInfo in GardenHomeScreen: ' + JSON.stringify(groupInfo));
   const navigation = useNavigation();
 
   const [selectedFlowerId, setSelectedFlowerId] = useState(null);
@@ -141,13 +128,13 @@ const GardenHomeScreen = ({groupInfo}) => {
         setItemList(res);
         setFlowerList(res.filter(val => val.flowerId));
         setLandmarkList(res.filter(val => val.tagId));
-        if (itemRef)
-          setTimeout(() => {
-            itemRef.scrollToEnd();
-          }, 1000);
+        // if (itemRef)
+        //   setTimeout(() => {
+        //     itemRef.scrollToEnd();
+        //   }, 1000);
       })
       .catch(err => console.log(err));
-  }, [isFocused, landmarkInfo, itemRef]);
+  }, [isFocused]);
 
   async function readNdef() {
     try {
@@ -364,7 +351,7 @@ const GardenHomeScreen = ({groupInfo}) => {
           flexDirection: 'row',
           marginTop: '15%',
           padding: 12,
-          backgroundColor: '#111214',
+          backgroundColor: NEUTRAL_900,
           borderRadius: 8,
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -382,13 +369,13 @@ const GardenHomeScreen = ({groupInfo}) => {
               {groupInfo.users.map((val, idx) => {
                 if (idx === groupInfo.users.length - 1) {
                   return (
-                    <Small style={{color: '#9298A0'}} key={idx}>
+                    <Small style={{color: NEUTRAL_400}} key={idx}>
                       {val.name}
                     </Small>
                   );
                 }
                 return (
-                  <Small style={{color: '#9298A0'}} key={idx}>
+                  <Small style={{color: NEUTRAL_400}} key={idx}>
                     {val.name},{' '}
                   </Small>
                 );
@@ -404,10 +391,15 @@ const GardenHomeScreen = ({groupInfo}) => {
               justifyContent: 'center',
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: '#fff',
+              borderColor: NEUTRAL_WHITE,
               borderRadius: 8,
             }}>
-            <Text style={{fontFamily: 'SUIT-Bold', fontSize: 8, color: '#fff'}}>
+            <Text
+              style={{
+                fontFamily: 'SUIT-Bold',
+                fontSize: 8,
+                color: NEUTRAL_WHITE,
+              }}>
               NFC
             </Text>
           </View>
@@ -440,13 +432,14 @@ const GardenHomeScreen = ({groupInfo}) => {
               renderItem={itemsLayout}
               keyExtractor={(item, index) => index.toString()}
               horizontal
+              onContentSizeChange={() => itemRef.scrollToEnd()}
             />
           )}
         </View>
       </View>
       <View
         style={{
-          backgroundColor: '#131415',
+          backgroundColor: NEUTRAL_900,
           height: '35%',
           paddingHorizontal: 16,
           paddingTop: 16,
@@ -462,18 +455,22 @@ const GardenHomeScreen = ({groupInfo}) => {
               style={{width: 32}}
               onPress={() => setViewType('flower')}>
               <Heading4
-                style={{color: viewType === 'flower' ? '#fff' : NEUTRAL_700}}>
+                style={{
+                  color: viewType === 'flower' ? NEUTRAL_WHITE : NEUTRAL_700,
+                }}>
                 꽃
               </Heading4>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setViewType('landmark')}>
               <Heading4
-                style={{color: viewType === 'landmark' ? '#fff' : NEUTRAL_700}}>
+                style={{
+                  color: viewType === 'landmark' ? NEUTRAL_WHITE : NEUTRAL_700,
+                }}>
                 랜드마크
               </Heading4>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity disabled>
+          <TouchableOpacity>
             <Body3 style={{color: PRIMARY_500}}>모두 보기</Body3>
           </TouchableOpacity>
         </View>
@@ -494,6 +491,7 @@ const GardenHomeScreen = ({groupInfo}) => {
       </View>
       <FlowerModal
         isVisible={Boolean(selectedFlowerId)}
+        navigation={navigation}
         onClose={handlePostModalClose}
         flowerId={selectedFlowerId}
         groupId={groupId}
@@ -514,13 +512,13 @@ const GardenHomeScreen = ({groupInfo}) => {
             alignItems: 'center',
             width: '100%',
             height: '50%',
-            backgroundColor: '#18191B',
+            backgroundColor: NEUTRAL_850,
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           }}>
           <View
             style={{
-              backgroundColor: '#979797',
+              backgroundColor: NEUTRAL_400,
               width: 48,
               height: 5,
               borderRadius: 3,

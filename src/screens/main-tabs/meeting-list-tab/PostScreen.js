@@ -32,6 +32,7 @@ import {API_URL} from '../../../common/constant';
 import {createPost} from '../../../redux/slices/post';
 import {uploadPostImage} from '../../../redux/slices/image';
 import {postFlowerImagePath} from '../garden-tab/imagePath';
+import {NEUTRAL_WHITE} from '../../../components/design-system/ColorSystem';
 
 const PostScreen = ({navigation, route}) => {
   const {width, height} = Dimensions.get('window');
@@ -145,7 +146,7 @@ const PostScreen = ({navigation, route}) => {
       .unwrap()
       .then(res => {
         console.log(res);
-        setFlowerId(res.meeting.flowerId);
+        setFlowerId(res.flower.id);
         setIsPostSubmitted(false);
         console.log(JSON.stringify(photoData));
         dispatch(uploadPostImage({postId: res.post.id, photoData: photoData}))
@@ -285,7 +286,7 @@ const PostScreen = ({navigation, route}) => {
             style={{
               width: 1,
               height: 30,
-              backgroundColor: '#fff',
+              backgroundColor: NEUTRAL_WHITE,
               marginHorizontal: 11,
             }}
           />
@@ -441,7 +442,7 @@ const PostScreen = ({navigation, route}) => {
                   key={item.options[val]}
                   style={{
                     width: '100%',
-                    backgroundColor: selected ? '#fff' : '#111214',
+                    backgroundColor: selected ? NEUTRAL_WHITE : '#111214',
                     marginTop: '4%',
                     justifyContent: 'center',
                     borderRadius: 8,
@@ -545,50 +546,6 @@ const PostScreen = ({navigation, route}) => {
       </GestureRecognizer>
     );
   };
-
-  // const SubmitCardLayout = () => {
-  //   return (
-  //     <GestureRecognizer
-  //       onSwipeRight={() => {
-  //         cardRef.scrollToIndex({
-  //           index: 8,
-  //           viewPosition: 0.5,
-  //         });
-  //       }}
-  //       style={{
-  //         // width: width * 0.85,
-  //         // height: '80%',
-  //         backgroundColor: '#c6b8f5',
-  //         // marginTop: '15%',
-  //         marginHorizontal: width * 0.023,
-  //         padding: 12,
-  //         paddingTop: 26,
-  //         borderRadius: 20,
-  //       }}>
-  //       <Body3 style={{color: '#000'}}>10/10</Body3>
-  //       <Heading2
-  //         style={{
-  //           color: '#000',
-  //           // width: 0.7 * width,
-  //           // height: 0.1 * height,
-  //           marginTop: 16,
-  //         }}>
-  //         사진을 직접 촬영해서 기록해 주세요.
-  //       </Heading2>
-  //       <View style={{alignItems: 'center'}}>
-  //         <TouchableOpacity
-  //           style={{
-  //             // width: '100%',
-  //             // height: '63%',
-  //             backgroundColor: '#000',
-  //             // marginTop: '4%',
-  //             borderRadius: 8,
-  //             padding: 14,
-  //           }}></TouchableOpacity>
-  //       </View>
-  //     </GestureRecognizer>
-  //   );
-  // };
 
   return (
     <MainWrapper>
